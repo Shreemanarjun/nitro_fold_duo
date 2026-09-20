@@ -18,7 +18,7 @@ A new Flutter FFI plugin project.
   # paths, so Classes contains a forwarder C file that relatively imports
   # `../src/*` so that the C sources can be shared among all target platforms.
   s.source           = { :path => '.' }
-  s.source_files = 'nitro_fold_duo/Sources/nitro_fold_duo/**/*'
+  s.source_files = 'Classes/**/*'
 
   # If your plugin requires a privacy manifest, for example if it collects user
   # data, update the PrivacyInfo.xcprivacy file to describe your plugin's
@@ -29,6 +29,7 @@ A new Flutter FFI plugin project.
   s.dependency 'FlutterMacOS'
 
   s.platform = :osx, '10.15'
+  s.dependency 'nitro'
   s.pod_target_xcconfig = {
     'DEFINES_MODULE' => 'YES',
     'CLANG_CXX_LANGUAGE_STANDARD' => 'c++17',
