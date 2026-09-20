@@ -30,6 +30,13 @@ class NitroFoldDuoImpl : HybridNitroFoldDuoSpec {
         isDark: Boolean,
     ) = Unit
 
+    override fun updateGlassSurface(
+        viewId: Long,
+        cornerRadius: Double,
+        tint: Long,
+        isDark: Boolean,
+    ) = Unit
+
     override fun setGlassCapsuleMenu(
         viewId: Long,
         buttonIndex: Long,

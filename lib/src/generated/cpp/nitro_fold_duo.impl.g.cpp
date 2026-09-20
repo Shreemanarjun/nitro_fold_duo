@@ -53,6 +53,11 @@ public:
         throw std::runtime_error("Not implemented: updateGlassCapsule");
     }
 
+    void updateGlassSurface(int64_t viewId, double cornerRadius, int64_t tint, bool isDark) override {
+        // TODO: implement updateGlassSurface
+        throw std::runtime_error("Not implemented: updateGlassSurface");
+    }
+
     void setGlassCapsuleMenu(int64_t viewId, int64_t buttonIndex, NitroCppBuffer titles, NitroCppBuffer symbols) override {
         // TODO: implement setGlassCapsuleMenu
         throw std::runtime_error("Not implemented: setGlassCapsuleMenu");

@@ -7,5 +7,6 @@ public class SwiftNitroFoldDuoPlugin: NSObject, FlutterPlugin {
         // The capsule is configured over the Nitro FFI bridge, not a channel,
         // so the factory needs no binary messenger.
         registrar.register(DuoGlassCapsuleFactory(), withId: "nitro_fold_duo/glass_capsule")
+        registrar.register(DuoGlassSurfaceFactory(), withId: "nitro_fold_duo/glass_surface")
     }
 }

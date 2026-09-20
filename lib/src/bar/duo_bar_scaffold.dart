@@ -6,6 +6,7 @@ import '../geometry/duo_signals.dart';
 import 'duo_bar_item.dart';
 import 'duo_bar_metrics.dart';
 import 'duo_bar_style.dart';
+import 'duo_glass_surface.dart';
 import 'duo_vertical_bar.dart';
 
 /// Keeps [body] clear of the Duo vertical strip and draws the bar in it.
@@ -25,6 +26,7 @@ class DuoBarScaffold extends StatelessWidget {
     this.selectedTab,
     this.tint,
     this.style,
+    this.titleBackdrop = true,
   });
 
   final Widget body;
@@ -45,6 +47,24 @@ class DuoBarScaffold extends StatelessWidget {
   /// Measurements and tint. Falls back to the nearest [DuoBarTheme], then to
   /// the system defaults.
   final DuoBarStyle? style;
+
+  /// Draws the system's material behind [title], so content scrolling under
+  /// the band stays legible. Turn it off for a body that already provides its
+  /// own background there.
+  final bool titleBackdrop;
+
+  Widget _titleBand(DuoBarStyle style) {
+    final label = Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: Padding(
+        padding: const EdgeInsetsDirectional.only(start: 20),
+        child: title,
+      ),
+    );
+    return titleBackdrop
+        ? DuoGlassSurface(tint: style.tint, child: label)
+        : label;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,13 +93,7 @@ class DuoBarScaffold extends StatelessWidget {
                     // the bezel, because the controls live in the strip.
                     SizedBox(
                       height: barStyle.titleBandHeight,
-                      child: Align(
-                        alignment: AlignmentDirectional.centerStart,
-                        child: Padding(
-                          padding: const EdgeInsetsDirectional.only(start: 20),
-                          child: title,
-                        ),
-                      ),
+                      child: _titleBand(barStyle),
                     ),
                     Expanded(child: body),
                   ],

@@ -36,6 +36,16 @@ public class NitroFoldDuoImpl: NSObject, HybridNitroFoldDuoProtocol {
         }
     }
 
+    public func updateGlassSurface(
+        viewId: Int64, cornerRadius: Double, tint: Int64, isDark: Bool
+    ) {
+        Task { @MainActor in
+            DuoGlassSurfaceRegistry.apply(
+                id: viewId, cornerRadius: cornerRadius, tint: Int(tint),
+                isDark: isDark)
+        }
+    }
+
     public func setGlassCapsuleMenu(
         viewId: Int64, buttonIndex: Int64, titles: [String], symbols: [String]
     ) {
