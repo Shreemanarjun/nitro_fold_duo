@@ -24,4 +24,17 @@ public class NitroFoldDuoImpl: NSObject, HybridNitroFoldDuoProtocol {
     public var stateChanges: AnyPublisher<DuoState, Never> {
         return Just(Self.unavailable).eraseToAnyPublisher()
     }
+
+    // The Liquid Glass capsule is an iPhone Duo control; macOS has no strip.
+    public func updateGlassCapsule(
+        viewId: Int64, symbols: [String], selectedIndex: Int64, tint: Int64, isDark: Bool
+    ) {}
+
+    public func setGlassCapsuleMenu(
+        viewId: Int64, buttonIndex: Int64, titles: [String], symbols: [String]
+    ) {}
+
+    public var glassCapsulePresses: AnyPublisher<DuoBarPress, Never> {
+        return Empty<DuoBarPress, Never>(completeImmediately: false).eraseToAnyPublisher()
+    }
 }

@@ -94,6 +94,24 @@ class DuoState {
   });
 }
     
+/// A button press in a native Liquid Glass capsule, tagged with the platform
+/// view that owns it.
+@HybridRecord()
+class DuoBarPress {
+  final int viewId;
+  final int index;
+
+  /// Which entry of the button's overflow menu was chosen, or negative when
+  /// the button itself was pressed.
+  final int menuIndex;
+
+  const DuoBarPress({
+    required this.viewId,
+    required this.index,
+    required this.menuIndex,
+  });
+}
+
 @NitroModule(
   ios: AppleNativeImpl.swift,
   android: AndroidNativeImpl.kotlin,
@@ -116,4 +134,34 @@ abstract class NitroFoldDuo extends HybridObject {
   /// Emits whenever the reserved regions or the hinge change.
   @NitroStream(backpressure: Backpressure.dropLatest)
   Stream<DuoState> get stateChanges;
+
+  /// Pushes a Liquid Glass capsule's contents to its native platform view.
+  ///
+  /// [viewId] is the id handed to `onPlatformViewCreated`. [selectedIndex] is
+  /// negative for no selection, and [tint] is ARGB with 0 meaning the system
+  /// label colour.
+  void updateGlassCapsule(
+    int viewId,
+    List<String> symbols,
+    int selectedIndex,
+    int tint,
+    bool isDark,
+  );
+
+  /// Gives the button at [buttonIndex] a real `UIMenu`, so toolbar items that
+  /// do not fit the strip open in the system overflow menu instead.
+  ///
+  /// An empty [titles] clears the menu. Choosing an entry arrives on
+  /// [glassCapsulePresses] with `menuIndex` set.
+  void setGlassCapsuleMenu(
+    int viewId,
+    int buttonIndex,
+    List<String> titles,
+    List<String> symbols,
+  );
+
+  /// Button presses from every glass capsule, tagged with the view that owns
+  /// them. A burst while Dart is busy rides one bridge crossing.
+  @NitroStream(backpressure: Backpressure.batch)
+  Stream<DuoBarPress> get glassCapsulePresses;
 }

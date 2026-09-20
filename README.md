@@ -1,92 +1,67 @@
 # nitro_fold_duo
 
-A new Flutter FFI plugin project.
+iPhone Duo support for Flutter: fold and camera geometry, hinge state, and the
+system's vertical control bar — over a [Nitro](https://pub.dev/packages/nitro)
+FFI bridge, with no method channels.
 
-## Getting Started
+## Requirements
 
-This project is a starting point for a Flutter
-[FFI plugin](https://flutter.dev/to/ffi-package),
-a specialized package that includes native code directly invoked with Dart FFI.
+Building the iOS side needs **Xcode 27.1 (iOS 27.1 SDK)**: the reserved-region,
+hinge and vertical-bar APIs are introduced in 27.1 and do not exist in earlier
+SDKs. They are runtime-guarded, so the plugin still runs on older systems and
+reports `isSupported == false`.
 
-## Project structure
+Select that toolchain per command rather than globally:
 
-This template uses the following structure:
-
-* `src`: Contains the native source code, and a CmakeFile.txt file for building
-  that source code into a dynamic library.
-
-* `lib`: Contains the Dart code that defines the API of the plugin, and which
-  calls into the native code using `dart:ffi`.
-
-* platform folders (`android`, `ios`, `windows`, etc.): Contains the build files
-  for building and bundling the native code library with the platform application.
-
-## Building and bundling native code
-
-The `pubspec.yaml` specifies FFI plugins as follows:
-
-```yaml
-  plugin:
-    platforms:
-      some_platform:
-        ffiPlugin: true
+```sh
+DEVELOPER_DIR=/path/to/Xcode-27.1.app/Contents/Developer flutter build ios --simulator
 ```
 
-This configuration invokes the native build for the various target platforms
-and bundles the binaries in Flutter applications using these FFI plugins.
+## Geometry and hinge
 
-This can be combined with dartPluginClass, such as when FFI is used for the
-implementation of one platform in a federated plugin:
+```dart
+final state = NitroFoldDuo.instance.currentState();
+state.isSupported;        // the Duo APIs are available and attached to a window
+state.hingeStatus;        // unknown | closed | partiallyOpen | fullyOpen
+state.hingeAngle;         // radians, or null where no hinge is available
+state.verticalBarEdge;    // unspecified | leading | trailing
+state.regions;            // reserved regions, active and inactive
 
-```yaml
-  plugin:
-    implements: some_other_plugin
-    platforms:
-      some_platform:
-        dartPluginClass: SomeClass
-        ffiPlugin: true
+NitroFoldDuo.instance.stateChanges.listen(...);  // emits on every change
 ```
 
-A plugin can have both FFI and method channels:
+`DuoReservedRegion.rect` is in Flutter logical pixels relative to the Flutter
+view and **already includes** `margins` — do not inset by them again. Branch on
+`hingeStatus`, not on the angle: no numeric range or zero convention is
+documented.
 
-```yaml
-  plugin:
-    platforms:
-      some_platform:
-        pluginClass: SomeName
-        ffiPlugin: true
+## Widgets
+
+| Widget | What it does |
+| --- | --- |
+| `DuoBuilder` | Rebuilds on any geometry or hinge change. |
+| `DuoSplit` | Places two panes either side of an active fold, leaving the band empty; shares the box along `fallbackAxis` when no division crosses it. |
+| `DuoOcclusionSafeArea` | Insets a child clear of active occlusions (the camera) from the cheapest edge. |
+| `DuoBarScaffold` | Keeps the body clear of the vertical strip and draws the bar in it; falls back to `horizontalChrome` where the system keeps bars horizontal. |
+| `DuoVerticalBar` | The strip itself: status clearance, back control, toolbar groups, tab bar — each group one Liquid Glass capsule. |
+| `DuoGlassCapsule` | One real `UIGlassEffect` capsule, hosted as a platform view. |
+
+`DuoLayout` exposes the same decisions as pure functions (`barSide`,
+`stripWidth`, `barInsets`) for custom layouts.
+
+The strip's layout is composed in Flutter — iOS only lays out
+container-managed bars vertically, never a hand-built `UINavigationBar` — while
+the capsule material and its buttons are genuine UIKit.
+
+## Development
+
+```sh
+nitrogen generate   # regenerate bridges from lib/src/nitro_fold_duo.native.dart
+nitrogen link       # wire them into the native build systems
+flutter test
 ```
 
-The native build systems that are invoked by FFI (and method channel) plugins are:
-
-* For Android: Gradle, which invokes the Android NDK for native builds.
-  * See the documentation in android/build.gradle.
-* For iOS and MacOS: Xcode, via CocoaPods.
-  * See the documentation in ios/nitro_fold_duo.podspec.
-  * See the documentation in macos/nitro_fold_duo.podspec.
-* For Linux and Windows: CMake.
-  * See the documentation in linux/CMakeLists.txt.
-  * See the documentation in windows/CMakeLists.txt.
-
-## Binding to native code
-
-To use the native code, bindings in Dart are needed.
-To avoid writing these by hand, they are generated from the header file
-(`src/nitro_fold_duo.h`) by `package:ffigen`.
-Regenerate the bindings by running `dart run ffigen --config ffigen.yaml`.
-
-## Invoking native code
-
-Very short-running native functions can be directly invoked from any isolate.
-For example, see `sum` in `lib/nitro_fold_duo.dart`.
-
-Longer-running functions should be invoked on a helper isolate to avoid
-dropping frames in Flutter applications.
-For example, see `sumAsync` in `lib/nitro_fold_duo.dart`.
-
-## Flutter help
-
-For help getting started with Flutter, view our
-[online documentation](https://docs.flutter.dev), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-
+`nitrogen link` copies hand-written Swift from `ios/Classes/` into the SPM
+sources only when it is missing, so after editing one of those files delete the
+copy under `ios/nitro_fold_duo/Sources/NitroFoldDuo/` and run `nitrogen link`
+again.

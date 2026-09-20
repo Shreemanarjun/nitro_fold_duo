@@ -95,7 +95,9 @@ final class DuoFoldWatcher {
     private var probe: DuoProbeView?
     private var hingeAngle: Double?
     private var hingeStatus: DuoHingeStatus = .unknown
-    private var traitRegistration: (any UITraitChangeRegistration)?
+    /// Typed as AnyObject: the registration protocol itself is iOS 17+, and
+    /// this plugin still deploys to 13.
+    private var traitRegistration: AnyObject?
 
     init(box: DuoStateBox) {
         self.box = box
@@ -120,9 +122,10 @@ final class DuoFoldWatcher {
         // trait: register for it directly so an edge change can never be
         // missed. Older systems fall back to the layout signal.
         if #available(iOS 27.1, *) {
-            traitRegistration = probe.registerForTraitChanges(
-                UITraitCollection.systemTraitsAffectingVerticalBarEdge
-            ) { [weak self] (_: DuoProbeView, _) in self?.recompute() }
+            traitRegistration =
+                probe.registerForTraitChanges(
+                    UITraitCollection.systemTraitsAffectingVerticalBarEdge
+                ) { [weak self] (_: DuoProbeView, _) in self?.recompute() } as AnyObject
         }
 
         if #available(iOS 27.1, *) {

@@ -60,6 +60,16 @@ public:
         // return { nullptr, 0 };
     }
 
+    void updateGlassCapsule(int64_t viewId, NitroCppBuffer symbols, int64_t selectedIndex, int64_t tint, bool isDark) override {
+        // TODO: implement updateGlassCapsule
+        throw std::runtime_error("Not implemented: updateGlassCapsule");
+    }
+
+    void setGlassCapsuleMenu(int64_t viewId, int64_t buttonIndex, NitroCppBuffer titles, NitroCppBuffer symbols) override {
+        // TODO: implement setGlassCapsuleMenu
+        throw std::runtime_error("Not implemented: setGlassCapsuleMenu");
+    }
+
     // ── Streams ──────────────────────────────────────────────────────────────
     // Call emit_<name>(item) from any thread to push items to Dart.
     // emit_* helpers are defined in the generated bridge.
@@ -69,6 +79,7 @@ public:
     // Example — start emitting from a background thread:
     //
     //   std::thread([this]{ emit_stateChanges(/* NitroCppBuffer value */); }).detach();
+    //   std::thread([this]{ emit_glassCapsulePresses(/* NitroCppBuffer value */); }).detach();
 };
 
 // ── Registration ─────────────────────────────────────────────────────────────

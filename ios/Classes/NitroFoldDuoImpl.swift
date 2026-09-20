@@ -30,4 +30,29 @@ public class NitroFoldDuoImpl: NSObject, HybridNitroFoldDuoProtocol {
     public var stateChanges: AnyPublisher<DuoState, Never> {
         return box.subject.eraseToAnyPublisher()
     }
+
+    public func updateGlassCapsule(
+        viewId: Int64, symbols: [String], selectedIndex: Int64, tint: Int64, isDark: Bool
+    ) {
+        // Called from Dart's UI isolate; UIKit is main-thread only.
+        Task { @MainActor in
+            DuoGlassCapsuleRegistry.apply(
+                id: viewId, symbols: symbols, selectedIndex: Int(selectedIndex),
+                tint: Int(tint), isDark: isDark)
+        }
+    }
+
+    public func setGlassCapsuleMenu(
+        viewId: Int64, buttonIndex: Int64, titles: [String], symbols: [String]
+    ) {
+        Task { @MainActor in
+            DuoGlassCapsuleRegistry.setMenu(
+                id: viewId, buttonIndex: Int(buttonIndex), titles: titles,
+                symbols: symbols)
+        }
+    }
+
+    public var glassCapsulePresses: AnyPublisher<DuoBarPress, Never> {
+        return DuoCapsuleBus.shared.presses.eraseToAnyPublisher()
+    }
 }

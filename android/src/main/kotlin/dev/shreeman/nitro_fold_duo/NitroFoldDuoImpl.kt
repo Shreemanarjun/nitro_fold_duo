@@ -1,8 +1,10 @@
 package dev.shreeman.nitro_fold_duo
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import nitro.nitro_fold_duo_module.DuoHingeStatus
+import nitro.nitro_fold_duo_module.DuoBarPress
 import nitro.nitro_fold_duo_module.DuoState
 import nitro.nitro_fold_duo_module.DuoVerticalBarEdge
 import nitro.nitro_fold_duo_module.HybridNitroFoldDuoSpec
@@ -21,6 +23,24 @@ class NitroFoldDuoImpl : HybridNitroFoldDuoSpec {
     override fun currentState(): DuoState = UNAVAILABLE
 
     override val stateChanges: Flow<DuoState> = flowOf(UNAVAILABLE)
+
+    // The Liquid Glass capsule is an iPhone Duo control; Android has no strip.
+    override fun updateGlassCapsule(
+        viewId: Long,
+        symbols: List<String>,
+        selectedIndex: Long,
+        tint: Long,
+        isDark: Boolean,
+    ) = Unit
+
+    override fun setGlassCapsuleMenu(
+        viewId: Long,
+        buttonIndex: Long,
+        titles: List<String>,
+        symbols: List<String>,
+    ) = Unit
+
+    override val glassCapsulePresses: Flow<DuoBarPress> = emptyFlow()
 
     private companion object {
         val UNAVAILABLE = DuoState(
