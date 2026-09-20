@@ -1,0 +1,15 @@
+# Run with `dart run ffigen --config ffigen.yaml`.
+name: NitroFoldDuoBindings
+description: |
+  Bindings for `src/nitro_fold_duo.h`.
+
+  Regenerate bindings with `dart run ffigen --config ffigen.yaml`.
+output: 'lib/nitro_fold_duo_bindings_generated.dart'
+headers:
+  entry-points:
+    - 'src/nitro_fold_duo.h'
+  include-directives:
+    - 'src/nitro_fold_duo.h'
+comments:
+  style: any
+  length: full

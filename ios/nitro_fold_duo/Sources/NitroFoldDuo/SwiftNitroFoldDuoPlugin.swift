@@ -1,0 +1,1 @@
+../../../Classes/SwiftNitroFoldDuoPlugin.swift

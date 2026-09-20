@@ -1,0 +1,1 @@
+../../lib/src/generated/swift/nitro_fold_duo.bridge.g.swift
