@@ -18,7 +18,7 @@ if(NOT "${_NITRO_CFG}" MATCHES "^(DEBUG|RELEASE|RELWITHDEBINFO|MINSIZEREL|)$")
 endif()
 
 set(NITRO_NATIVE "${CMAKE_CURRENT_SOURCE_DIR}/native")
-# NITRO_LINK_SPEC_CHECKSUM 6e2dc1c50184796e
+# NITRO_LINK_SPEC_CHECKSUM c7fa73148826c416
 set(GENERATED_CPP "${CMAKE_CURRENT_SOURCE_DIR}/../lib/src/generated/cpp")
 
 add_library(nitro_fold_duo SHARED
@@ -28,7 +28,11 @@ add_library(nitro_fold_duo SHARED
 )
 
 if(NOT ANDROID)
-  target_sources(nitro_fold_duo PRIVATE "HybridNitroFoldDuo.cpp")
+  if(DEFINED NITRO_IMPL_SRC_nitro_fold_duo)
+    target_sources(nitro_fold_duo PRIVATE "${NITRO_IMPL_SRC_nitro_fold_duo}")
+  else()
+    target_sources(nitro_fold_duo PRIVATE "HybridNitroFoldDuo.cpp")
+  endif()
 endif()
 target_include_directories(nitro_fold_duo PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}"

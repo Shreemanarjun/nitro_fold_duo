@@ -1,5 +1,9 @@
 package dev.shreeman.nitro_fold_duo
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+import nitro.nitro_fold_duo_module.DuoHingeStatus
+import nitro.nitro_fold_duo_module.DuoState
 import nitro.nitro_fold_duo_module.HybridNitroFoldDuoSpec
 
 /// Native implementation of HybridNitroFoldDuoSpec.
@@ -10,4 +14,19 @@ class NitroFoldDuoImpl : HybridNitroFoldDuoSpec {
     override fun add(a: Double, b: Double): Double = a + b
 
     override suspend fun getGreeting(name: String): String = "Hello, $name!"
+
+    // Duo fold/hinge geometry is an iOS 27.1 API. Android foldables would need
+    // Jetpack WindowManager instead; unsupported until someone asks for it.
+    override fun currentState(): DuoState = UNAVAILABLE
+
+    override val stateChanges: Flow<DuoState> = flowOf(UNAVAILABLE)
+
+    private companion object {
+        val UNAVAILABLE = DuoState(
+            isSupported = false,
+            hingeStatus = DuoHingeStatus.UNKNOWN,
+            hingeAngle = null,
+            regions = emptyList(),
+        )
+    }
 }

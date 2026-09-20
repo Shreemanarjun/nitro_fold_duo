@@ -53,6 +53,22 @@ public:
         throw std::runtime_error("Not implemented: getGreeting");
         // return "";
     }
+
+    NitroCppBuffer currentState() override {
+        // TODO: implement currentState
+        throw std::runtime_error("Not implemented: currentState");
+        // return { nullptr, 0 };
+    }
+
+    // ── Streams ──────────────────────────────────────────────────────────────
+    // Call emit_<name>(item) from any thread to push items to Dart.
+    // emit_* helpers are defined in the generated bridge.
+    // Record/variant items: pass record.toNativeBuffer() — ownership of the
+    // heap [4B len][payload] block transfers to the bridge (same convention
+    // as record returns). Never emit a non-owning writer.toBuffer() view.
+    // Example — start emitting from a background thread:
+    //
+    //   std::thread([this]{ emit_stateChanges(/* NitroCppBuffer value */); }).detach();
 };
 
 // ── Registration ─────────────────────────────────────────────────────────────
