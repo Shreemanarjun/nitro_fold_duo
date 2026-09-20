@@ -25,6 +25,7 @@ DuoState _state({
   verticalBarEdge: edge,
   hingeAngle: 2.2,
   regions: regions,
+  cornerInsets: const DuoInsets(left: 0, top: 0, right: 0, bottom: 0),
 );
 
 /// The inner display in landscape, as measured on the iPhone Duo simulator.

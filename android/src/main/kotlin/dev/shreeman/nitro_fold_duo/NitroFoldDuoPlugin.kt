@@ -19,7 +19,10 @@ class NitroFoldDuoPlugin : FlutterPlugin, ActivityAware {
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        NitroFoldDuoJniBridge.onDetached()
+        // The generated bridge has no engine-level teardown; dropping the
+        // activity is what actually needs to happen, and it stops the fold
+        // listener with it.
+        NitroFoldDuoJniBridge.onActivityDetached()
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {

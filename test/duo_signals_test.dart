@@ -78,6 +78,28 @@ void main() {
     });
   });
 
+  group('corner insets', () {
+    test('are zero where the system reports no rounded corners', () {
+      expect(duoCornerInsets.value, EdgeInsets.zero);
+      expect(duoStateUnavailable.cornerInsets.edgeInsets, EdgeInsets.zero);
+    });
+
+    test('carry what the display curve eats into each edge', () {
+      // What an iPhone Duo reports on the cover display: a corner inset on the
+      // leading edge that the ordinary safe area says nothing about.
+      debugSetDuoState(
+        duo(
+          cornerInsets: const DuoInsets(left: 16, top: 0, right: 84, bottom: 34),
+        ),
+      );
+
+      expect(
+        duoCornerInsets.value,
+        const EdgeInsets.fromLTRB(16, 0, 84, 34),
+      );
+    });
+  });
+
   group('DuoBuilder', () {
     testWidgets('builds with the current state and rebuilds on change', (
       tester,

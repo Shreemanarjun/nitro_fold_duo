@@ -22,6 +22,7 @@ DuoState _state(List<DuoReservedRegion> regions) => DuoState(
   verticalBarEdge: DuoVerticalBarEdge.trailing,
   hingeAngle: 1.5,
   regions: regions,
+  cornerInsets: const DuoInsets(left: 0, top: 0, right: 0, bottom: 0),
 );
 
 const _box = Size(400, 800);

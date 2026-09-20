@@ -6,7 +6,17 @@ import UIKit
 // Generated record types are plain value types that cross from the UIKit main
 // thread to Dart's UI isolate.
 extension DuoReservedRegion: @unchecked Sendable {}
+extension DuoInsets: @unchecked Sendable {}
 extension DuoState: @unchecked Sendable {}
+
+extension DuoInsets: Equatable {
+    static let zero = DuoInsets(left: 0, top: 0, right: 0, bottom: 0)
+
+    public static func == (a: Self, b: Self) -> Bool {
+        a.left == b.left && a.top == b.top && a.right == b.right
+            && a.bottom == b.bottom
+    }
+}
 
 extension DuoReservedRegion: Equatable {
     public static func == (a: Self, b: Self) -> Bool {
@@ -23,13 +33,14 @@ extension DuoState: Equatable {
         a.isSupported == b.isSupported && a.hingeStatus == b.hingeStatus
             && a.verticalBarEdge == b.verticalBarEdge
             && a.hingeAngle == b.hingeAngle && a.regions == b.regions
+            && a.cornerInsets == b.cornerInsets
     }
 }
 
 extension DuoState {
     static let unavailable = DuoState(
         isSupported: false, hingeStatus: .unknown, verticalBarEdge: .unspecified,
-        hingeAngle: nil, regions: [])
+        hingeAngle: nil, regions: [], cornerInsets: .zero)
 }
 
 /// Hand-off between the UIKit main thread (writer) and Dart's UI isolate
@@ -158,6 +169,19 @@ final class DuoFoldWatcher {
         var regions: [DuoReservedRegion] = []
         var supported = false
         var barEdge = DuoVerticalBarEdge.unspecified
+        var corners = DuoInsets.zero
+
+        // Corner clearance predates the fold APIs and applies to every iPhone,
+        // so it is read on its own availability.
+        if #available(iOS 26.0, *) {
+            // Horizontal adaptation: the leading and trailing edges widen
+            // where the corners curve, which is what a page of content needs.
+            let insets = probe.edgeInsets(
+                for: .safeArea(cornerAdaptation: .horizontal))
+            corners = DuoInsets(
+                left: insets.left, top: insets.top, right: insets.right,
+                bottom: insets.bottom)
+        }
 
         if #available(iOS 27.1, *) {
             supported = true
@@ -193,7 +217,8 @@ final class DuoFoldWatcher {
         box.publish(
             DuoState(
                 isSupported: supported, hingeStatus: hingeStatus,
-                verticalBarEdge: barEdge, hingeAngle: hingeAngle, regions: regions))
+                verticalBarEdge: barEdge, hingeAngle: hingeAngle, regions: regions,
+                cornerInsets: corners))
     }
 
     /// The `FlutterViewController`'s view, so region frames land in Flutter's

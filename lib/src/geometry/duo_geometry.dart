@@ -11,7 +11,12 @@ const DuoState duoStateUnavailable = DuoState(
   verticalBarEdge: DuoVerticalBarEdge.unspecified,
   hingeAngle: null,
   regions: <DuoReservedRegion>[],
+  cornerInsets: DuoInsets(left: 0, top: 0, right: 0, bottom: 0),
 );
+
+extension DuoInsetsGeometry on DuoInsets {
+  EdgeInsets get edgeInsets => EdgeInsets.fromLTRB(left, top, right, bottom);
+}
 
 /// Region helpers. [rect] and [margins] are in Flutter logical pixels relative
 /// to the Flutter view's origin; [rect] already includes [margins].

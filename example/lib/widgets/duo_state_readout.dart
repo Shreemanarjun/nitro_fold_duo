@@ -50,7 +50,13 @@ class DuoStateReadout extends StatelessWidget {
               ),
               Row(
                 children: [
-                  Text('action: $lastAction', key: const Key('action')),
+                  Text(
+                'corners: ${state.cornerInsets.left.toStringAsFixed(0)}/'
+                '${state.cornerInsets.top.toStringAsFixed(0)}/'
+                '${state.cornerInsets.right.toStringAsFixed(0)}/'
+                '${state.cornerInsets.bottom.toStringAsFixed(0)}',
+              ),
+              Text('action: $lastAction', key: const Key('action')),
                   const SizedBox(width: 8),
                   TextButton(
                     key: const Key('resetAction'),

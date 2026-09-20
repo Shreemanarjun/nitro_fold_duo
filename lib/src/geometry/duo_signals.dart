@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
+import 'package:flutter/widgets.dart' show EdgeInsets;
 import 'package:signals_flutter/signals_flutter.dart';
 
 import '../duo_bridge.dart';
@@ -70,6 +71,15 @@ final ReadonlySignal<List<DuoReservedRegion>> duoActiveOcclusions = computed(
 final ReadonlySignal<DuoHingeStatus> duoHingeStatus = computed(
   () => duoState.value.hingeStatus,
   options: ComputedOptions(name: 'duoHingeStatus'),
+);
+
+/// What the display's rounded corners eat into each edge.
+///
+/// Flutter's own padding describes bars and cutouts but says nothing about
+/// corner radius, so content at a corner can be clipped by it.
+final ReadonlySignal<EdgeInsets> duoCornerInsets = computed(
+  () => duoState.value.cornerInsets.edgeInsets,
+  options: ComputedOptions(name: 'duoCornerInsets'),
 );
 
 /// The edge the system reserves for the vertical bar, whether or not one is

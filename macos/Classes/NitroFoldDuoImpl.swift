@@ -7,7 +7,8 @@ public class NitroFoldDuoImpl: NSObject, HybridNitroFoldDuoProtocol {
 
     private static let unavailable = DuoState(
         isSupported: false, hingeStatus: .unknown, verticalBarEdge: .unspecified,
-        hingeAngle: nil, regions: [])
+        hingeAngle: nil, regions: [],
+        cornerInsets: DuoInsets(left: 0, top: 0, right: 0, bottom: 0))
 
 
     public func currentState() -> DuoState {

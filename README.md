@@ -43,6 +43,7 @@ rebuilt every time the hinge angle ticks:
 | `duoActiveOcclusions` | regions that can obscure content, e.g. a camera |
 | `duoHingeStatus` | `unknown` / `closed` / `partiallyOpen` / `fullyOpen` |
 | `duoVerticalBarEdge` | `unspecified` / `leading` / `trailing` |
+| `duoCornerInsets` | what the display's rounded corners eat into each edge |
 
 `duoState` always has a value: where there is no bridge — under `flutter test`,
 or on a platform the plugin does not build for — it reports
@@ -70,6 +71,28 @@ debugSetDuoState(DuoState(
 addTearDown(() => debugSetDuoState(null));
 ```
 
+## Platforms
+
+| | fold and hinge | vertical bar |
+| --- | --- | --- |
+| iOS 27.1 | reserved regions, hinge angle, corner insets | real Liquid Glass |
+| iOS < 27.1 | `isSupported == false` | — |
+| Android | Jetpack WindowManager + hinge sensor | — |
+| macOS, Windows, Linux | `isSupported == false` | — |
+
+Every platform answers the whole API. Where there is no fold the state is
+`duoStateUnavailable` and the bar calls are accepted and ignored, so a
+cross-platform app can call this unconditionally without a single platform
+check.
+
+Android is a real implementation, not a stub: `FoldingFeature` gives the fold's
+bounds, posture and whether it is separating — the same facts UIKit reports as
+a reserved region — so `DuoSplit` and `duoActiveDivision` work on a Fold or a
+Flip. It also emits an occlusion when the hinge fully occludes, reads the
+hinge-angle sensor where the device has one, and derives corner insets from
+`RoundedCorner` on API 31+. `verticalBarEdge` stays `unspecified`: Android
+keeps its bars horizontal.
+
 ## Widgets
 
 | Widget | What it does |
@@ -80,10 +103,35 @@ addTearDown(() => debugSetDuoState(null));
 | `DuoBarScaffold` | Keeps the body clear of the vertical strip and draws the bar in it; falls back to `horizontalChrome` where the system keeps bars horizontal. |
 | `DuoVerticalBar` | The strip itself: status clearance, back control, toolbar groups, tab bar — each group one Liquid Glass capsule, with anything that does not fit in a real `UIMenu` behind an overflow capsule. |
 | `DuoGlassCapsule` | One real `UIGlassEffect` capsule, hosted as a platform view. |
+| `DuoGlassSurface` | The same material without the buttons, for chrome that content scrolls under. |
+| `DuoDisplayFeatures` | Publishes the fold and cameras through `MediaQuery.displayFeatures`. |
 
 `DuoLayout` exposes the same decisions as pure functions (`barSide`,
 `stripWidth`, `barInsets`), and `duoBarOverflow` the fitting rule, for custom
 layouts.
+
+### Display features
+
+Flutter has modelled a fold since `DisplayFeature` landed, but `dart:ui` only
+fills it in on Android: on an iPhone Duo `MediaQuery.displayFeaturesOf` comes
+back empty however you hold the phone. Everything built on it —
+`DisplayFeatureSubScreen`, and so every dialog, popup menu and route that
+already avoids a hinge on a Fold — therefore does nothing.
+
+Wrapping the app fills that gap from the reserved regions iOS does report, so
+the widgets you already have behave the same on both:
+
+```dart
+MaterialApp(
+  builder: (context, child) => DuoDisplayFeatures(child: child!),
+  home: const HomePage(),
+)
+```
+
+An active division becomes a `fold` feature carrying the posture, a camera
+becomes a `cutout`, and whatever the platform reported is kept. A flat fold is
+reported inactive by the device and so is not published: a crease you cannot
+see is not something a layout should route around.
 
 ### Styling the bar
 
@@ -96,6 +144,19 @@ DuoBarTheme(
   child: DuoBarScaffold(body: ...),
 )
 ```
+
+`DuoBarStyle.compression` decides what gives way when the strip runs out of
+room, mirroring `UIVerticalBarCompressionBehavior` — SwiftUI spells the same
+choice `.toolbarVerticalCompressionBehavior(.prefersToolbarItems)`:
+
+| | |
+| --- | --- |
+| `automatic`, `prefersTabBar` | the tab bar stays whole and toolbar items move into the overflow menu |
+| `prefersBarItems` | the toolbar keeps the strip; the tab bar collapses to one button whose menu lists the tabs |
+
+`DuoBarScaffold` draws the system's material behind the title so content
+scrolling under the band stays legible; pass `titleBackdrop: false` for a body
+that provides its own background there.
 
 The strip's layout is composed in Flutter — iOS only lays out
 container-managed bars vertically, never a hand-built `UINavigationBar` — while
@@ -114,6 +175,28 @@ lib/
     widgets/                           DuoBuilder, DuoSplit, DuoOcclusionSafeArea
     bar/                               the vertical bar: metrics, items, capsule, scaffold
 ```
+
+## The bridge
+
+Everything crosses on Nitro's FFI bridge; there are no method channels. The
+four calls on the hot path — reading the snapshot, and pushing a capsule, its
+menu or a surface — are `@nitroFast`, so each binding is `isLeaf: true` and the
+generated body is a bare call with no error slot: roughly 260 ns down to 13 ns,
+level with a hand-written `dart:ffi` binding.
+
+That speed is a contract the Swift side has to keep: **never throw, never
+block, never call back into Dart**. Each of those methods either reads a
+lock-protected cached value or hands its arguments to the main thread and
+returns, which is why the fast path is safe here. Anything doing real work
+should stay on the ordinary path.
+
+Presses come back the other way on one `@NitroStream(backpressure: batch)`
+shared by every capsule and demultiplexed in Dart by platform view id, so a
+burst arrives as a single message rather than one crossing each.
+
+`updateGlassCapsule` is not marked `@mainThread`: on a synchronous method that
+annotation blocks the calling Dart thread until the main thread finishes, and
+a fire-and-forget hop inside Swift is both non-blocking and cheaper.
 
 ## Development
 

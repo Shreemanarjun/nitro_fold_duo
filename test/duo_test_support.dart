@@ -41,12 +41,19 @@ DuoState duo({
   DuoHingeStatus hinge = DuoHingeStatus.partiallyOpen,
   double? angle = 2.2,
   bool isSupported = true,
+  DuoInsets cornerInsets = const DuoInsets(
+    left: 0,
+    top: 0,
+    right: 0,
+    bottom: 0,
+  ),
 }) => DuoState(
   isSupported: isSupported,
   hingeStatus: hinge,
   verticalBarEdge: edge,
   hingeAngle: angle,
   regions: regions,
+  cornerInsets: cornerInsets,
 );
 
 /// Wraps [child] in the media query a Duo pose produces.

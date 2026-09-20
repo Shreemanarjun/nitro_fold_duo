@@ -17,6 +17,7 @@ class FakeDuoBridge implements NitroFoldDuo {
   final _presses = StreamController<DuoBarPress>.broadcast();
 
   final capsuleUpdates = <({int viewId, List<String> symbols, int selected})>[];
+  final surfaceUpdates = <({int viewId, double radius, int tint})>[];
   final menuUpdates = <({int viewId, int button, List<String> titles})>[];
 
   void emit(DuoState state) {
@@ -48,6 +49,14 @@ class FakeDuoBridge implements NitroFoldDuo {
     symbols: symbols,
     selected: selectedIndex,
   ));
+
+  @override
+  void updateGlassSurface(
+    int viewId,
+    double cornerRadius,
+    int tint,
+    bool isDark,
+  ) => surfaceUpdates.add((viewId: viewId, radius: cornerRadius, tint: tint));
 
   @override
   void setGlassCapsuleMenu(
@@ -115,6 +124,98 @@ void main() {
 
       expect(duoState.value.hingeStatus, DuoHingeStatus.fullyOpen);
     });
+  });
+
+  group('DuoGlassSurface', () {
+    testWidgets('pushes its shape to the native material', (tester) async {
+      final fake = FakeDuoBridge();
+      debugSetDuoBridge(fake);
+      _mockPlatformViews(tester);
+
+      await tester.pumpWidget(
+        host(
+          child: const Center(
+            child: SizedBox(
+              width: 200,
+              height: 70,
+              child: DuoGlassSurface(
+                borderRadius: 12,
+                tint: Color(0xFF6750A4),
+                child: Text('Fold Duo'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(fake.surfaceUpdates, isNotEmpty);
+      expect(fake.surfaceUpdates.last.radius, 12);
+      expect(fake.surfaceUpdates.last.tint, 0xFF6750A4);
+      expect(find.text('Fold Duo'), findsOneWidget);
+    }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+
+    testWidgets('repushes when its shape changes', (tester) async {
+      final fake = FakeDuoBridge();
+      debugSetDuoBridge(fake);
+      _mockPlatformViews(tester);
+
+      Widget surface(double radius) => host(
+        child: Center(
+          child: SizedBox(
+            width: 200,
+            height: 70,
+            child: DuoGlassSurface(borderRadius: radius),
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(surface(0));
+      await tester.pumpAndSettle();
+      await tester.pumpWidget(surface(24));
+      await tester.pumpAndSettle();
+
+      expect(fake.surfaceUpdates.last.radius, 24);
+    }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+
+    testWidgets('falls back to a blur of the same shape off iOS', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          child: const Center(
+            child: SizedBox(
+              width: 200,
+              height: 70,
+              child: DuoGlassSurface(borderRadius: 12, child: Text('Fold Duo')),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(BackdropFilter), findsOneWidget);
+      expect(find.text('Fold Duo'), findsOneWidget);
+    });
+
+    testWidgets('does nothing without a bridge', (tester) async {
+      debugSetDuoBridge(null);
+      _mockPlatformViews(tester);
+
+      await tester.pumpWidget(
+        host(
+          child: const Center(
+            child: SizedBox(
+              width: 200,
+              height: 70,
+              child: DuoGlassSurface(),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DuoGlassSurface), findsOneWidget);
+    }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
   });
 
   group('DuoGlassCapsule against a bridge', () {
