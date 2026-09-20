@@ -31,3 +31,7 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 /build/
 /coverage/
+
+# Agent skills installed into the repo by tooling, not project code.
+/.agents/
+/.claude/
