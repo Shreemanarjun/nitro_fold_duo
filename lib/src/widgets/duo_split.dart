@@ -79,10 +79,15 @@ class _DuoSplitState extends State<DuoSplit> with DuoLocalOrigin {
       Expanded(child: widget.primary),
       Expanded(child: widget.secondary),
     ];
-    return widget.fallbackAxis == Axis.vertical
-        ? Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch, children: children)
-        : Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch, children: children);
+    return switch (widget.fallbackAxis) {
+      Axis.vertical => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: children,
+      ),
+      Axis.horizontal => Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: children,
+      ),
+    };
   }
 }

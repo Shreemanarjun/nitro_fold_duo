@@ -269,6 +269,120 @@ void main() {
     });
   });
 
+  group('DuoBarCompression', () {
+    /// Enough actions that the strip cannot hold them all.
+    List<DuoBarItem> crowded() => _actions(12);
+
+    testWidgets('by default the toolbar overflows and the tab bar stays whole', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(duoCoverSize);
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        host(
+          size: duoCoverSize,
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: DuoVerticalBar(
+              state: _coverPose(),
+              actions: crowded(),
+              tabs: const [
+                DuoBarItem(symbol: 'one'),
+                DuoBarItem(symbol: 'two'),
+                DuoBarItem(symbol: 'three'),
+              ],
+              selectedTab: 1,
+            ),
+          ),
+        ),
+      );
+
+      final capsules = tester
+          .widgetList<DuoGlassCapsule>(find.byType(DuoGlassCapsule))
+          .toList();
+      // The tab capsule keeps all three tabs, and something overflowed.
+      expect(capsules.last.symbols, ['one', 'two', 'three']);
+      expect(capsules.any((c) => c.symbols.single == kDuoOverflowSymbol), isTrue);
+    });
+
+    testWidgets('prefersBarItems collapses the tab bar into one button', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(duoCoverSize);
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        host(
+          size: duoCoverSize,
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: DuoVerticalBar(
+              state: _coverPose(),
+              actions: crowded(),
+              tabs: const [
+                DuoBarItem(symbol: 'one', title: 'One'),
+                DuoBarItem(symbol: 'two', title: 'Two'),
+                DuoBarItem(symbol: 'three', title: 'Three'),
+              ],
+              selectedTab: 1,
+              style: const DuoBarStyle(
+                compression: DuoBarCompression.prefersBarItems,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final tabCapsule = tester
+          .widgetList<DuoGlassCapsule>(find.byType(DuoGlassCapsule))
+          .last;
+      // One button, showing where you are, with every tab behind it.
+      expect(tabCapsule.symbols, ['two']);
+      expect(tabCapsule.menus[0], hasLength(3));
+    });
+
+    testWidgets('leaves the tab bar alone when everything fits', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(duoCoverSize);
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        host(
+          size: duoCoverSize,
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: DuoVerticalBar(
+              state: _coverPose(),
+              actions: _actions(1),
+              tabs: const [
+                DuoBarItem(symbol: 'one'),
+                DuoBarItem(symbol: 'two'),
+              ],
+              selectedTab: 0,
+              style: const DuoBarStyle(
+                compression: DuoBarCompression.prefersBarItems,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(
+        tester.widgetList<DuoGlassCapsule>(find.byType(DuoGlassCapsule)).last
+            .symbols,
+        ['one', 'two'],
+      );
+    });
+
+    test('only prefersBarItems compresses the tab bar', () {
+      expect(DuoBarCompression.automatic.compressesTabBar, isFalse);
+      expect(DuoBarCompression.prefersTabBar.compressesTabBar, isFalse);
+      expect(DuoBarCompression.prefersBarItems.compressesTabBar, isTrue);
+    });
+  });
+
   group('duoCapsuleExtent', () {
     test('matches the style it is measured against', () {
       expect(duoCapsuleExtent(2), kDuoBarItemHeight * 2 + kDuoBarGroupSpacing);

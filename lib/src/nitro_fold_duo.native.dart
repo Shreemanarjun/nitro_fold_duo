@@ -93,7 +93,7 @@ class DuoState {
     required this.regions,
   });
 }
-    
+
 /// A button press in a native Liquid Glass capsule, tagged with the platform
 /// view that owns it.
 @HybridRecord()
@@ -142,6 +142,19 @@ abstract class NitroFoldDuo extends HybridObject {
     List<String> symbols,
     List<String> titles,
     int selectedIndex,
+    int tint,
+    bool isDark,
+  );
+
+  /// Shapes a Liquid Glass surface — the same material as the bar's capsules,
+  /// without the buttons — for use behind a title or any other chrome that
+  /// content scrolls under.
+  ///
+  /// [cornerRadius] is in logical pixels; [tint] is ARGB with 0 meaning the
+  /// plain material.
+  void updateGlassSurface(
+    int viewId,
+    double cornerRadius,
     int tint,
     bool isDark,
   );

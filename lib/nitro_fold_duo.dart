@@ -19,5 +19,6 @@ export 'src/geometry/duo_geometry.dart';
 export 'src/geometry/duo_signals.dart';
 export 'src/nitro_fold_duo.native.dart';
 export 'src/widgets/duo_builder.dart';
+export 'src/widgets/duo_display_features.dart';
 export 'src/widgets/duo_occlusion_safe_area.dart';
 export 'src/widgets/duo_split.dart';

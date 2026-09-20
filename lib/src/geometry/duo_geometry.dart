@@ -89,9 +89,15 @@ EdgeInsets duoOcclusionInsets(
       if (rect.left <= 0) (rect.right, EdgeInsets.only(left: rect.right)),
       if (rect.top <= 0) (rect.bottom, EdgeInsets.only(top: rect.bottom)),
       if (rect.right >= size.width)
-        (size.width - rect.left, EdgeInsets.only(right: size.width - rect.left)),
+        (
+          size.width - rect.left,
+          EdgeInsets.only(right: size.width - rect.left),
+        ),
       if (rect.bottom >= size.height)
-        (size.height - rect.top, EdgeInsets.only(bottom: size.height - rect.top)),
+        (
+          size.height - rect.top,
+          EdgeInsets.only(bottom: size.height - rect.top),
+        ),
     ];
     if (options.isEmpty) continue;
 

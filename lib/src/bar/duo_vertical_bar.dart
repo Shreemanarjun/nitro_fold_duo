@@ -144,18 +144,33 @@ class DuoVerticalBar extends StatelessWidget {
       width: style.stripWidth ?? DuoLayout.stripWidth(viewPadding),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          // What the toolbar capsules get, once the fixed parts have taken
-          // their room: the clearances, the leading control and the tab bar.
-          final available =
+          final leadingExtent = leading == null ? 0.0 : style.capsuleExtent(1);
+          final tabsExtent = tabs.isEmpty
+              ? 0.0
+              : style.capsuleExtent(tabs.length);
+          final room =
               constraints.maxHeight -
               insets.top -
               insets.bottom -
-              (leading == null ? 0 : style.capsuleExtent(1)) -
-              (tabs.isEmpty ? 0 : style.capsuleExtent(tabs.length));
+              leadingExtent;
+
+          // What the toolbar capsules get, once the tab bar has taken its
+          // room. Under `prefersBarItems` that order is reversed: the tab bar
+          // collapses to one button so the toolbar can stay in the strip.
+          final groups = groupsOf(actions);
+          final wanted = groups.fold(
+            0.0,
+            (sum, group) => sum + style.capsuleExtent(group.length),
+          );
+          final collapseTabs =
+              style.compression.compressesTabBar &&
+              tabs.length > 1 &&
+              wanted > room - tabsExtent;
 
           final fitted = duoBarOverflow(
-            groups: groupsOf(actions),
-            available: available,
+            groups: groups,
+            available:
+                room - (collapseTabs ? style.capsuleExtent(1) : tabsExtent),
             style: style,
           );
 
@@ -185,7 +200,11 @@ class DuoVerticalBar extends StatelessWidget {
               ],
               const Spacer(),
               if (tabs.isNotEmpty)
-                _capsule(style, tabs, selectedIndex: selectedTab),
+                if (collapseTabs)
+                  // One button showing where you are, with the rest behind it.
+                  _capsule(style, [tabs[selectedTab ?? 0]], menus: {0: tabs})
+                else
+                  _capsule(style, tabs, selectedIndex: selectedTab),
               SizedBox(height: insets.bottom),
             ],
           );

@@ -58,11 +58,10 @@ final ReadonlySignal<DuoReservedRegion?> duoActiveDivision = computed(
 );
 
 /// Regions that can currently obscure content, such as a camera.
-final ReadonlySignal<List<DuoReservedRegion>> duoActiveOcclusions =
-    computed(
-      () => duoState.value.activeOcclusions.toList(),
-      options: ComputedOptions(name: 'duoActiveOcclusions'),
-    );
+final ReadonlySignal<List<DuoReservedRegion>> duoActiveOcclusions = computed(
+  () => duoState.value.activeOcclusions.toList(),
+  options: ComputedOptions(name: 'duoActiveOcclusions'),
+);
 
 /// Whether the device is closed, partly folded, or flat.
 ///

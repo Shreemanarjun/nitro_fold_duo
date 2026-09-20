@@ -60,10 +60,10 @@ class DuoBarScaffold extends StatelessWidget {
 
         final strip = barStyle.stripWidth ?? DuoLayout.stripWidth(viewPadding);
         final content = Padding(
-          padding: EdgeInsets.only(
-            left: side == DuoBarSide.left ? strip : 0,
-            right: side == DuoBarSide.right ? strip : 0,
-          ),
+          padding: switch (side) {
+            DuoBarSide.left => EdgeInsets.only(left: strip),
+            DuoBarSide.right => EdgeInsets.only(right: strip),
+          },
           child: title == null
               ? body
               : Column(
@@ -92,8 +92,14 @@ class DuoBarScaffold extends StatelessWidget {
             Positioned(
               top: 0,
               bottom: 0,
-              left: side == DuoBarSide.left ? 0 : null,
-              right: side == DuoBarSide.right ? 0 : null,
+              left: switch (side) {
+                DuoBarSide.left => 0,
+                DuoBarSide.right => null,
+              },
+              right: switch (side) {
+                DuoBarSide.left => null,
+                DuoBarSide.right => 0,
+              },
               child: DuoVerticalBar(
                 state: state,
                 leading: leading,

@@ -100,11 +100,6 @@ void main() {
       expect(duoBridge, isNull);
     });
 
-    test('the fake answers the rest of the spec', () {
-      final fake = FakeDuoBridge();
-      expect(fake.add(3, 4), 7);
-      expect(fake.getGreeting('World'), completion('Hello, World!'));
-    });
   });
 
   group('duoState against a bridge', () {
