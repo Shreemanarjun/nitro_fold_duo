@@ -27,7 +27,8 @@ public class NitroFoldDuoImpl: NSObject, HybridNitroFoldDuoProtocol {
 
     // The Liquid Glass capsule is an iPhone Duo control; macOS has no strip.
     public func updateGlassCapsule(
-        viewId: Int64, symbols: [String], selectedIndex: Int64, tint: Int64, isDark: Bool
+        viewId: Int64, symbols: [String], titles: [String], selectedIndex: Int64,
+        tint: Int64, isDark: Bool
     ) {}
 
     public func setGlassCapsuleMenu(

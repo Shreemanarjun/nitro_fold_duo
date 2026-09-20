@@ -22,10 +22,12 @@ enum DuoGlassCapsuleRegistry {
     static func remove(id: Int64) { views.removeValue(forKey: id) }
 
     static func apply(
-        id: Int64, symbols: [String], selectedIndex: Int, tint: Int, isDark: Bool
+        id: Int64, symbols: [String], titles: [String], selectedIndex: Int, tint: Int,
+        isDark: Bool
     ) {
         views[id]?.apply(
-            symbols: symbols, selectedIndex: selectedIndex, tint: tint, isDark: isDark)
+            symbols: symbols, titles: titles, selectedIndex: selectedIndex, tint: tint,
+            isDark: isDark)
     }
 
     static func setMenu(
@@ -127,7 +129,10 @@ final class DuoGlassCapsuleView: NSObject, FlutterPlatformView {
     func view() -> UIView { container }
 
     @MainActor
-    func apply(symbols next: [String], selectedIndex index: Int, tint argb: Int, isDark: Bool) {
+    func apply(
+        symbols next: [String], titles: [String], selectedIndex index: Int, tint argb: Int,
+        isDark: Bool
+    ) {
         container.overrideUserInterfaceStyle = isDark ? .dark : .light
         tint = argb == 0 ? nil : Self.color(argb: argb)
         selectedIndex = index < 0 ? nil : index
@@ -139,6 +144,10 @@ final class DuoGlassCapsuleView: NSObject, FlutterPlatformView {
         for (i, button) in buttons.enumerated() {
             button.tintColor = tint ?? .label
             button.isSelected = i == selectedIndex
+            // Icon-only controls have nothing to announce otherwise; an empty
+            // title leaves the label iOS derives from the SF Symbol.
+            let title = titles.indices.contains(i) ? titles[i] : ""
+            button.accessibilityLabel = title.isEmpty ? nil : title
         }
         layoutChrome()
     }

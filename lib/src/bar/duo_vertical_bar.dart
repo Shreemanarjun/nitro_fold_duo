@@ -99,6 +99,7 @@ class DuoVerticalBar extends StatelessWidget {
     height: kDuoBarItemHeight * items.length,
     child: DuoGlassCapsule(
       symbols: [for (final item in items) item.symbol],
+      titles: [for (final item in items) item.title ?? ''],
       selectedIndex: selectedIndex,
       menus: menus,
       tint: tint,
@@ -155,7 +156,9 @@ class DuoVerticalBar extends StatelessWidget {
               ],
               if (fitted.overflow.isNotEmpty) ...[
                 _capsule(
-                  const [DuoBarItem(symbol: kDuoOverflowSymbol)],
+                  const [
+                    DuoBarItem(symbol: kDuoOverflowSymbol, title: 'More'),
+                  ],
                   menus: {0: fitted.overflow},
                 ),
                 const SizedBox(height: kDuoBarGroupSpacing),

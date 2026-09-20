@@ -28,6 +28,7 @@ class NitroFoldDuoImpl : HybridNitroFoldDuoSpec {
     override fun updateGlassCapsule(
         viewId: Long,
         symbols: List<String>,
+        titles: List<String>,
         selectedIndex: Long,
         tint: Long,
         isDark: Boolean,

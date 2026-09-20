@@ -17,6 +17,7 @@ class DuoGlassCapsule extends StatefulWidget {
   const DuoGlassCapsule({
     super.key,
     required this.symbols,
+    this.titles = const <String>[],
     this.selectedIndex,
     this.menus = const <int, List<DuoBarItem>>{},
     this.tint,
@@ -25,6 +26,11 @@ class DuoGlassCapsule extends StatefulWidget {
 
   /// SF Symbol names, top to bottom.
   final List<String> symbols;
+
+  /// Accessibility labels for those buttons. An icon carries no name of its
+  /// own, so without these VoiceOver only has what iOS guesses from the
+  /// symbol. An empty entry keeps that guess.
+  final List<String> titles;
 
   /// Index to draw a selection pill behind, for the tab capsule.
   final int? selectedIndex;
@@ -68,6 +74,7 @@ class _DuoGlassCapsuleState extends State<DuoGlassCapsule> {
     duo.updateGlassCapsule(
       id,
       widget.symbols,
+      widget.titles,
       widget.selectedIndex ?? -1,
       widget.tint?.toARGB32() ?? 0,
       MediaQuery.platformBrightnessOf(context) == Brightness.dark,

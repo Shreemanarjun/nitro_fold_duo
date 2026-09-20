@@ -137,12 +137,15 @@ abstract class NitroFoldDuo extends HybridObject {
 
   /// Pushes a Liquid Glass capsule's contents to its native platform view.
   ///
-  /// [viewId] is the id handed to `onPlatformViewCreated`. [selectedIndex] is
-  /// negative for no selection, and [tint] is ARGB with 0 meaning the system
-  /// label colour.
+  /// [viewId] is the id handed to `onPlatformViewCreated`. [titles] become the
+  /// buttons' accessibility labels — icon-only controls have nothing else to
+  /// announce — and an empty entry leaves the label iOS derives from the SF
+  /// Symbol. [selectedIndex] is negative for no selection, and [tint] is ARGB
+  /// with 0 meaning the system label colour.
   void updateGlassCapsule(
     int viewId,
     List<String> symbols,
+    List<String> titles,
     int selectedIndex,
     int tint,
     bool isDark,
