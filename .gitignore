@@ -35,3 +35,10 @@ migrate_working_dir/
 # Agent skills installed into the repo by tooling, not project code.
 /.agents/
 /.claude/
+
+# Local shim `nitrogen link` drops in so SwiftPM resolves ../FlutterFramework
+# from the repo path. Flutter creates the real one in the consuming app's
+# .packages/, so this must never be published — see `nitro` itself, which
+# declares the same dependency and ships no symlink.
+/ios/FlutterFramework
+/macos/FlutterFramework
