@@ -1,8 +1,10 @@
 import 'package:flutter/widgets.dart';
 
+import 'package:signals_flutter/signals_flutter.dart';
+
 import '../geometry/duo_geometry.dart';
 import '../geometry/duo_local_origin.dart';
-import 'duo_builder.dart';
+import '../geometry/duo_signals.dart';
 
 /// Places [primary] and [secondary] on opposite sides of an active fold,
 /// leaving the reserved band itself empty.
@@ -35,31 +37,40 @@ class _DuoSplitState extends State<DuoSplit> with DuoLocalOrigin {
   @override
   Widget build(BuildContext context) {
     scheduleOriginSync();
-    return DuoBuilder(
-      builder: (context, state) => LayoutBuilder(
-        builder: (context, constraints) {
-          final split =
-              duoDivisionBand(state, constraints.biggest, origin: localOrigin);
-          if (split == null) return _fallback();
-          return split.horizontal
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SizedBox(height: split.band.top, child: widget.primary),
-                    SizedBox(height: split.band.height),
-                    Expanded(child: widget.secondary),
-                  ],
-                )
-              : Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SizedBox(width: split.band.left, child: widget.primary),
-                    SizedBox(width: split.band.width),
-                    Expanded(child: widget.secondary),
-                  ],
-                );
-        },
-      ),
+    return SignalBuilder(
+      builder: (context) {
+        // Read the signal here, in the build phase: LayoutBuilder's callback
+        // runs during layout, outside the scope SignalBuilder tracks, so a
+        // read in there would never subscribe to anything.
+        final state = duoState.value;
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final split = duoDivisionBand(
+              state,
+              constraints.biggest,
+              origin: localOrigin,
+            );
+            if (split == null) return _fallback();
+            return split.horizontal
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SizedBox(height: split.band.top, child: widget.primary),
+                      SizedBox(height: split.band.height),
+                      Expanded(child: widget.secondary),
+                    ],
+                  )
+                : Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SizedBox(width: split.band.left, child: widget.primary),
+                      SizedBox(width: split.band.width),
+                      Expanded(child: widget.secondary),
+                    ],
+                  );
+          },
+        );
+      },
     );
   }
 

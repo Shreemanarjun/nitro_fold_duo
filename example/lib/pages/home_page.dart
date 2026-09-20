@@ -76,7 +76,10 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final body = _tab == 0
-        ? DuoStateReadout(lastAction: _action)
+        ? DuoStateReadout(
+            lastAction: _action,
+            onReset: () => _record('reset'),
+          )
         : const DuoSplit(
             primary: DemoPane(label: 'PRIMARY', color: Colors.deepPurple),
             secondary: DemoPane(label: 'SECONDARY', color: Colors.teal),

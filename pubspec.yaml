@@ -12,6 +12,7 @@ dependencies:
     sdk: flutter
   nitro: ^0.7.6
   plugin_platform_interface: ^2.0.2
+  signals_flutter: ^7.1.0
 
 dev_dependencies:
   flutter_test:

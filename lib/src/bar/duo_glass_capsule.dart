@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:ui' show ImageFilter;
 
-import 'package:flutter/foundation.dart' show defaultTargetPlatform;
+import 'package:flutter/foundation.dart' show Factory, defaultTargetPlatform;
+import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
+import '../duo_bridge.dart';
 import '../nitro_fold_duo.native.dart';
 import 'duo_bar_item.dart';
 import 'duo_bar_metrics.dart';
@@ -61,7 +63,8 @@ class _DuoGlassCapsuleState extends State<DuoGlassCapsule> {
     _viewId = id;
     _handlers[id] = (index, menuIndex) =>
         widget.onPressed?.call(index, menuIndex);
-    _presses ??= NitroFoldDuo.instance.glassCapsulePresses.listen(
+    // With no bridge the capsule still lays out, it just cannot report.
+    _presses ??= duoBridge?.glassCapsulePresses.listen(
       (press) => _handlers[press.viewId]?.call(press.index, press.menuIndex),
     );
     _push();
@@ -69,8 +72,8 @@ class _DuoGlassCapsuleState extends State<DuoGlassCapsule> {
 
   void _push() {
     final id = _viewId;
-    if (id == null) return;
-    final duo = NitroFoldDuo.instance;
+    final duo = duoBridge;
+    if (id == null || duo == null) return;
     duo.updateGlassCapsule(
       id,
       widget.symbols,
@@ -127,6 +130,13 @@ class _DuoGlassCapsuleState extends State<DuoGlassCapsule> {
     // creation params and no per-view channel.
     return UiKitView(
       viewType: 'nitro_fold_duo/glass_capsule',
+      // The capsule is entirely native and nothing in Flutter competes for
+      // these touches, so let it win the arena at once. Without this the
+      // platform view only sees a touch after Flutter's recognisers give up,
+      // and short synthesised taps — UI tests, assistive input — are lost.
+      gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+        Factory<OneSequenceGestureRecognizer>(EagerGestureRecognizer.new),
+      },
       onPlatformViewCreated: _attach,
     );
   }

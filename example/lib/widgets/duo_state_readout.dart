@@ -5,14 +5,24 @@ import 'package:nitro_fold_duo/nitro_fold_duo.dart';
 
 /// Raw state straight off the bridge — this is what proves the native query.
 class DuoStateReadout extends StatelessWidget {
-  const DuoStateReadout({super.key, required this.lastAction});
+  const DuoStateReadout({
+    super.key,
+    required this.lastAction,
+    required this.onReset,
+  });
 
   final String lastAction;
 
+  /// A Flutter-drawn control in the body, next to the native ones in the
+  /// strip: it tells a failing bar interaction apart from a failing bridge.
+  final VoidCallback onReset;
+
   @override
   Widget build(BuildContext context) {
-    return DuoBuilder(
-      builder: (context, state) {
+    // The signals way: read what you need, rebuild when it changes.
+    return SignalBuilder(
+      builder: (context) {
+        final state = duoState.value;
         final angle = state.hingeAngle;
         final viewPadding = MediaQuery.viewPaddingOf(context);
         final size = MediaQuery.sizeOf(context);
@@ -25,7 +35,11 @@ class DuoStateReadout extends StatelessWidget {
             children: [
               Text('Duo state', style: Theme.of(context).textTheme.titleMedium),
               Text('supported: ${state.isSupported}'),
-              Text('hinge: ${state.hingeStatus.name}'),
+              // A narrower signal: this line does not rebuild when a camera
+              // region moves, only when the fold status itself changes.
+              SignalBuilder(
+                builder: (context) => Text('hinge: ${duoHingeStatus.value.name}'),
+              ),
               Text(
                 'angle: ${angle == null ? 'n/a' : '${(angle * 180 / math.pi).toStringAsFixed(1)}°'}',
               ),
@@ -34,7 +48,17 @@ class DuoStateReadout extends StatelessWidget {
                 'barSide: ${DuoLayout.barSide(viewPadding, state: state)?.name ?? 'none'}',
                 key: const Key('barSide'),
               ),
-              Text('action: $lastAction', key: const Key('action')),
+              Row(
+                children: [
+                  Text('action: $lastAction', key: const Key('action')),
+                  const SizedBox(width: 8),
+                  TextButton(
+                    key: const Key('resetAction'),
+                    onPressed: onReset,
+                    child: const Text('reset'),
+                  ),
+                ],
+              ),
               Text(
                 'screen: ${size.width.toStringAsFixed(0)}'
                 '×${size.height.toStringAsFixed(0)} '

@@ -119,6 +119,15 @@ void main() {
       expect(insets.bottom, 669 - 549 + kDuoBarRegionGap);
     });
 
+    test('the lowest camera in the strip sets the bottom clearance', () {
+      // Two regions in the lower half: the one that reaches further up wins.
+      final insets = insetsFor([
+        _occlusion(const Rect.fromLTWH(867, 600, 84, 69)),
+        _occlusion(const Rect.fromLTWH(867, 500, 84, 169)),
+      ]);
+      expect(insets.bottom, 669 - 500 + kDuoBarRegionGap);
+    });
+
     test('an empty strip means nothing has been reported for this pose yet', () {
       expect(insetsFor([]).top, kDuoStatusClusterFallbackHeight);
     });

@@ -42,18 +42,6 @@ public:
 
     // ── Methods ──────────────────────────────────────────────────────────────
 
-    double add(double a, double b) override {
-        // TODO: implement add
-        throw std::runtime_error("Not implemented: add");
-        // return 0.0;
-    }
-
-    std::string getGreeting(const std::string& name) override {
-        // TODO: implement getGreeting
-        throw std::runtime_error("Not implemented: getGreeting");
-        // return "";
-    }
-
     NitroCppBuffer currentState() override {
         // TODO: implement currentState
         throw std::runtime_error("Not implemented: currentState");

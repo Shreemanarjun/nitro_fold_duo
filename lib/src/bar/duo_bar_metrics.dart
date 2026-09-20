@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../geometry/duo_geometry.dart';
 import '../nitro_fold_duo.native.dart';
+import 'duo_bar_style.dart';
 
 /// Fallback width of the vertical control strip, used only if the system
 /// reports no side inset. The strip normally takes the width of that inset,
@@ -83,8 +84,9 @@ abstract final class DuoLayout {
     required Size size,
     required EdgeInsets viewPadding,
     required DuoState state,
+    DuoBarStyle style = const DuoBarStyle(),
   }) {
-    final strip = stripWidth(viewPadding);
+    final strip = style.stripWidth ?? stripWidth(viewPadding);
     final onLeft = barSide(viewPadding) == DuoBarSide.left;
     final stripStart = onLeft ? 0.0 : size.width - strip;
     final stripEnd = onLeft ? strip : size.width;
@@ -117,8 +119,9 @@ abstract final class DuoLayout {
     // Until then stay clear of where the cluster can be.
     final unknown = inStrip.isEmpty;
     return (
-      top: top ?? (unknown ? kDuoStatusClusterFallbackHeight : kDuoBarEdgeMargin),
-      bottom: bottom ?? kDuoBarEdgeMargin,
+      top:
+          top ?? (unknown ? kDuoStatusClusterFallbackHeight : style.edgeMargin),
+      bottom: bottom ?? style.edgeMargin,
     );
   }
 }

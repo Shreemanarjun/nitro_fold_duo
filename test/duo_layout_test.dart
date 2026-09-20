@@ -27,6 +27,31 @@ DuoState _state(List<DuoReservedRegion> regions) => DuoState(
 const _box = Size(400, 800);
 
 void main() {
+  group('DuoRegionGeometry', () {
+    test('exposes the protective margins baked into the frame', () {
+      final r = _region(
+        DuoRegionKind.occlusion,
+        const Rect.fromLTWH(10, 20, 30, 40),
+      );
+      expect(r.rect, const Rect.fromLTWH(10, 20, 30, 40));
+      expect(r.margins, EdgeInsets.zero);
+
+      final padded = DuoReservedRegion(
+        kind: DuoRegionKind.division,
+        left: 0,
+        top: 0,
+        width: 10,
+        height: 10,
+        marginLeft: 1,
+        marginTop: 2,
+        marginRight: 3,
+        marginBottom: 4,
+        isActive: true,
+      );
+      expect(padded.margins, const EdgeInsets.fromLTRB(1, 2, 3, 4));
+    });
+  });
+
   group('duoDivisionBand', () {
     test('no regions does not split', () {
       expect(duoDivisionBand(_state([]), _box), isNull);

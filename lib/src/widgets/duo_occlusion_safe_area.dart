@@ -1,8 +1,10 @@
 import 'package:flutter/widgets.dart';
 
+import 'package:signals_flutter/signals_flutter.dart';
+
 import '../geometry/duo_geometry.dart';
 import '../geometry/duo_local_origin.dart';
-import 'duo_builder.dart';
+import '../geometry/duo_signals.dart';
 
 /// Insets [child] so it clears active occlusion regions, such as the camera.
 ///
@@ -23,17 +25,22 @@ class _DuoOcclusionSafeAreaState extends State<DuoOcclusionSafeArea>
   @override
   Widget build(BuildContext context) {
     scheduleOriginSync();
-    return DuoBuilder(
-      builder: (context, state) => LayoutBuilder(
-        builder: (context, constraints) => Padding(
-          padding: duoOcclusionInsets(
-            state,
-            constraints.biggest,
-            origin: localOrigin,
+    return SignalBuilder(
+      builder: (context) {
+        // Read the signal here, in the build phase: LayoutBuilder's callback
+        // runs during layout, outside the scope SignalBuilder tracks.
+        final state = duoState.value;
+        return LayoutBuilder(
+          builder: (context, constraints) => Padding(
+            padding: duoOcclusionInsets(
+              state,
+              constraints.biggest,
+              origin: localOrigin,
+            ),
+            child: widget.child,
           ),
-          child: widget.child,
-        ),
-      ),
+        );
+      },
     );
   }
 }

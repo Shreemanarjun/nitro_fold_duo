@@ -14,10 +14,6 @@ import nitro.nitro_fold_duo_module.HybridNitroFoldDuoSpec
 /// Use `applicationContext` (from the interface) to access the Android context.
 class NitroFoldDuoImpl : HybridNitroFoldDuoSpec {
 
-    override fun add(a: Double, b: Double): Double = a + b
-
-    override suspend fun getGreeting(name: String): String = "Hello, $name!"
-
     // Duo fold/hinge geometry is an iOS 27.1 API. Android foldables would need
     // Jetpack WindowManager instead; unsupported until someone asks for it.
     override fun currentState(): DuoState = UNAVAILABLE

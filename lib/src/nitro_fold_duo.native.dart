@@ -122,11 +122,6 @@ class DuoBarPress {
 abstract class NitroFoldDuo extends HybridObject {
   static final NitroFoldDuo instance = _NitroFoldDuoImpl();
 
-  double add(double a, double b);
-
-  @nitroAsync
-  Future<String> getGreeting(String name);
-
   /// The latest snapshot. Cheap — the native side keeps it cached and
   /// recomputes it on the platform main thread when the geometry changes.
   DuoState currentState();

@@ -1,8 +1,11 @@
 import 'package:flutter/widgets.dart';
 
-import '../widgets/duo_builder.dart';
+import 'package:signals_flutter/signals_flutter.dart';
+
+import '../geometry/duo_signals.dart';
 import 'duo_bar_item.dart';
 import 'duo_bar_metrics.dart';
+import 'duo_bar_style.dart';
 import 'duo_vertical_bar.dart';
 
 /// Keeps [body] clear of the Duo vertical strip and draws the bar in it.
@@ -21,6 +24,7 @@ class DuoBarScaffold extends StatelessWidget {
     this.tabs = const <DuoBarItem>[],
     this.selectedTab,
     this.tint,
+    this.style,
   });
 
   final Widget body;
@@ -38,17 +42,23 @@ class DuoBarScaffold extends StatelessWidget {
   final int? selectedTab;
   final Color? tint;
 
+  /// Measurements and tint. Falls back to the nearest [DuoBarTheme], then to
+  /// the system defaults.
+  final DuoBarStyle? style;
+
   @override
   Widget build(BuildContext context) {
-    return DuoBuilder(
-      builder: (context, state) {
+    return SignalBuilder(
+      builder: (context) {
+        final state = duoState.value;
+        final barStyle = style ?? DuoBarTheme.of(context);
         final viewPadding = MediaQuery.viewPaddingOf(context);
         final side = DuoLayout.barSide(viewPadding, state: state);
         if (side == null) {
           return horizontalChrome?.call(context, body) ?? body;
         }
 
-        final strip = DuoLayout.stripWidth(viewPadding);
+        final strip = barStyle.stripWidth ?? DuoLayout.stripWidth(viewPadding);
         final content = Padding(
           padding: EdgeInsets.only(
             left: side == DuoBarSide.left ? strip : 0,
@@ -62,7 +72,7 @@ class DuoBarScaffold extends StatelessWidget {
                     // The system sets the title at the leading edge, clear of
                     // the bezel, because the controls live in the strip.
                     SizedBox(
-                      height: kDuoTitleBandHeight,
+                      height: barStyle.titleBandHeight,
                       child: Align(
                         alignment: AlignmentDirectional.centerStart,
                         child: Padding(
@@ -91,6 +101,7 @@ class DuoBarScaffold extends StatelessWidget {
                 tabs: tabs,
                 selectedTab: selectedTab,
                 tint: tint,
+                style: barStyle,
               ),
             ),
           ],

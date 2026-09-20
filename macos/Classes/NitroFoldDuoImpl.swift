@@ -9,13 +9,6 @@ public class NitroFoldDuoImpl: NSObject, HybridNitroFoldDuoProtocol {
         isSupported: false, hingeStatus: .unknown, verticalBarEdge: .unspecified,
         hingeAngle: nil, regions: [])
 
-    public func add(a: Double, b: Double) -> Double {
-        return a + b
-    }
-
-    public func getGreeting(name: String) async throws -> String {
-        return "Hello, \(name) from macOS!"
-    }
 
     public func currentState() -> DuoState {
         return Self.unavailable
