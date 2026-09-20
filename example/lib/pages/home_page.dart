@@ -1,10 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:nitro_fold_duo/nitro_fold_duo.dart';
 
-import '../widgets/demo_pane.dart';
 import '../widgets/duo_state_readout.dart';
+import '../widgets/duo_status_line.dart';
 import '../widgets/horizontal_chrome.dart';
 import 'detail_page.dart';
+import 'reader_page.dart';
+
+/// Two tabs: a reader that splits across the fold, and the raw state the
+/// bridge reports.
+enum DemoTab {
+  reader(symbol: 'text.justify', title: 'Read', icon: Icons.article_outlined),
+  state(symbol: 'info.circle', title: 'State', icon: Icons.info_outline);
+
+  const DemoTab({required this.symbol, required this.title, required this.icon});
+
+  final String symbol;
+  final String title;
+  final IconData icon;
+}
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,7 +28,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _tab = 0;
+  DemoTab _tab = DemoTab.reader;
+  int _article = 0;
   String _action = '—';
 
   void _record(String action) => setState(() => _action = action);
@@ -27,15 +42,15 @@ class _HomePageState extends State<HomePage> {
   /// the system overflow menu.
   List<DuoBarItem> get _actions => [
     DuoBarItem(
-      symbol: 'square.and.arrow.up',
-      title: 'Share',
-      onPressed: () => _record('share'),
+      symbol: 'rectangle.split.2x1',
+      title: 'Fold-aware dialog',
+      onPressed: () => showFoldAwareDialog(context),
     ),
     DuoBarItem(
-      symbol: 'gearshape',
-      title: 'Settings',
+      symbol: 'square.and.arrow.up',
+      title: 'Share',
       endsGroup: true,
-      onPressed: () => _record('settings'),
+      onPressed: () => _record('share'),
     ),
     DuoBarItem(
       symbol: 'chevron.right.circle',
@@ -75,15 +90,22 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final body = _tab == 0
-        ? DuoStateReadout(
-            lastAction: _action,
-            onReset: () => _record('reset'),
-          )
-        : const DuoSplit(
-            primary: DemoPane(label: 'PRIMARY', color: Colors.deepPurple),
-            secondary: DemoPane(label: 'SECONDARY', color: Colors.teal),
-          );
+    final body = switch (_tab) {
+      DemoTab.reader => ReaderPage(
+        selected: _article,
+        onSelected: (index) => setState(() => _article = index),
+      ),
+      DemoTab.state => DuoStateReadout(
+        lastAction: _action,
+        onReset: () => _record('reset'),
+      ),
+    };
+
+    // The status line sits under whichever tab is up, so the device's state is
+    // always on screen.
+    final content = Column(
+      children: [Expanded(child: body), const DuoStatusLine()],
+    );
 
     return Scaffold(
       body: DuoBarScaffold(
@@ -93,32 +115,30 @@ class _HomePageState extends State<HomePage> {
         ),
         actions: _actions,
         tabs: [
-          DuoBarItem(
-            symbol: 'info.circle',
-            title: 'State',
-            onPressed: () => setState(() => _tab = 0),
-          ),
-          DuoBarItem(
-            symbol: 'rectangle.split.2x1',
-            title: 'Split',
-            onPressed: () => setState(() => _tab = 1),
-          ),
+          for (final tab in DemoTab.values)
+            DuoBarItem(
+              symbol: tab.symbol,
+              title: tab.title,
+              onPressed: () => setState(() => _tab = tab),
+            ),
         ],
-        selectedTab: _tab,
+        selectedTab: _tab.index,
         horizontalChrome: (context, body) => HorizontalChrome(
           title: 'Fold Duo',
           body: body,
-          selectedTab: _tab,
-          onTabSelected: (index) => setState(() => _tab = index),
+          selectedTab: _tab.index,
+          onTabSelected: (index) =>
+              setState(() => _tab = DemoTab.values[index]),
           actions: [
+            IconButton(
+              key: const Key('horizontalDialog'),
+              onPressed: () => showFoldAwareDialog(context),
+              icon: const Icon(Icons.splitscreen),
+            ),
             IconButton(
               key: const Key('horizontalShare'),
               onPressed: () => _record('share'),
               icon: const Icon(Icons.ios_share),
-            ),
-            IconButton(
-              onPressed: () => _record('settings'),
-              icon: const Icon(Icons.settings_outlined),
             ),
             IconButton(
               key: const Key('horizontalDetail'),
@@ -127,7 +147,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-        body: body,
+        body: content,
       ),
     );
   }

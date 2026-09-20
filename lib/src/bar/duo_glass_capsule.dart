@@ -18,33 +18,20 @@ import 'duo_bar_metrics.dart';
 class DuoGlassCapsule extends StatefulWidget {
   const DuoGlassCapsule({
     super.key,
-    required this.symbols,
-    this.titles = const <String>[],
+    required this.items,
     this.selectedIndex,
-    this.menus = const <int, List<DuoBarItem>>{},
     this.tint,
-    this.onPressed,
   });
 
-  /// SF Symbol names, top to bottom.
-  final List<String> symbols;
-
-  /// Accessibility labels for those buttons. An icon carries no name of its
-  /// own, so without these VoiceOver only has what iOS guesses from the
-  /// symbol. An empty entry keeps that guess.
-  final List<String> titles;
+  /// The buttons, top to bottom. Each carries its own symbol, accessibility
+  /// label, menu and callback, so there is no way for them to fall out of
+  /// step with one another.
+  final List<DuoBarItem> items;
 
   /// Index to draw a selection pill behind, for the tab capsule.
   final int? selectedIndex;
 
-  /// Overflow menu entries for the button at each index. A button with a menu
-  /// opens it instead of reporting a plain press.
-  final Map<int, List<DuoBarItem>> menus;
-
   final Color? tint;
-
-  /// `menuIndex` is negative for a plain press, otherwise the chosen entry.
-  final void Function(int index, int menuIndex)? onPressed;
 
   @override
   State<DuoGlassCapsule> createState() => _DuoGlassCapsuleState();
@@ -59,10 +46,22 @@ class _DuoGlassCapsuleState extends State<DuoGlassCapsule> {
   int? _viewId;
   Set<int> _pushedMenus = const {};
 
+  /// Runs the item a press belongs to — the button itself, or the entry chosen
+  /// from its menu. Out-of-range indices are ignored rather than thrown: they
+  /// can only mean the bar changed between the press and its delivery.
+  void _dispatch(int index, int menuIndex) {
+    if (index < 0 || index >= widget.items.length) return;
+    final item = widget.items[index];
+    if (menuIndex < 0) {
+      item.onPressed?.call();
+      return;
+    }
+    if (menuIndex < item.menu.length) item.menu[menuIndex].onPressed?.call();
+  }
+
   void _attach(int id) {
     _viewId = id;
-    _handlers[id] = (index, menuIndex) =>
-        widget.onPressed?.call(index, menuIndex);
+    _handlers[id] = _dispatch;
     // With no bridge the capsule still lays out, it just cannot report.
     _presses ??= duoBridge?.glassCapsulePresses.listen(
       (press) => _handlers[press.viewId]?.call(press.index, press.menuIndex),
@@ -76,8 +75,8 @@ class _DuoGlassCapsuleState extends State<DuoGlassCapsule> {
     if (id == null || duo == null) return;
     duo.updateGlassCapsule(
       id,
-      widget.symbols,
-      widget.titles,
+      [for (final item in widget.items) item.symbol],
+      [for (final item in widget.items) item.title ?? ''],
       widget.selectedIndex ?? -1,
       widget.tint?.toARGB32() ?? 0,
       MediaQuery.platformBrightnessOf(context) == Brightness.dark,
@@ -85,19 +84,21 @@ class _DuoGlassCapsuleState extends State<DuoGlassCapsule> {
 
     // Rebuilding the buttons drops their menus, so push every menu after the
     // contents, and clear any button that had one and no longer does.
-    for (final index in widget.menus.keys) {
-      final entries = widget.menus[index]!;
+    final withMenus = <int>{};
+    for (final (index, item) in widget.items.indexed) {
+      if (item.menu.isEmpty) continue;
+      withMenus.add(index);
       duo.setGlassCapsuleMenu(
         id,
         index,
-        [for (final entry in entries) entry.menuTitle],
-        [for (final entry in entries) entry.symbol],
+        [for (final entry in item.menu) entry.menuTitle],
+        [for (final entry in item.menu) entry.symbol],
       );
     }
-    for (final index in _pushedMenus.difference(widget.menus.keys.toSet())) {
+    for (final index in _pushedMenus.difference(withMenus)) {
       duo.setGlassCapsuleMenu(id, index, const [], const []);
     }
-    _pushedMenus = widget.menus.keys.toSet();
+    _pushedMenus = withMenus;
   }
 
   @override
@@ -151,10 +152,10 @@ class _DuoGlassCapsuleState extends State<DuoGlassCapsule> {
         color: const Color(0x33FFFFFF),
         child: Column(
           children: [
-            for (var i = 0; i < widget.symbols.length; i++)
+            for (final (index, _) in widget.items.indexed)
               Expanded(
                 child: GestureDetector(
-                  onTap: () => widget.onPressed?.call(i, -1),
+                  onTap: () => _dispatch(index, -1),
                   behavior: HitTestBehavior.opaque,
                   child: const SizedBox.expand(),
                 ),

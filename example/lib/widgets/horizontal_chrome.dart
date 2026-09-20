@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../pages/home_page.dart';
+
 /// The ordinary app bar and tab bar, drawn wherever the system keeps bars
 /// horizontal: the Duo inner display in portrait, and every other iPhone.
 class HorizontalChrome extends StatelessWidget {
@@ -46,9 +48,9 @@ class HorizontalChrome extends StatelessWidget {
           NavigationBar(
             selectedIndex: selectedTab!,
             onDestinationSelected: onTabSelected,
-            destinations: const [
-              NavigationDestination(icon: Icon(Icons.info_outline), label: 'State'),
-              NavigationDestination(icon: Icon(Icons.splitscreen), label: 'Split'),
+            destinations: [
+              for (final tab in DemoTab.values)
+                NavigationDestination(icon: Icon(tab.icon), label: tab.title),
             ],
           ),
       ],

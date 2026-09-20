@@ -102,32 +102,16 @@ class DuoVerticalBar extends StatelessWidget {
     return groups;
   }
 
-  Widget _capsule(
-    DuoBarStyle style,
-    List<DuoBarItem> items, {
-    int? selectedIndex,
-    Map<int, List<DuoBarItem>> menus = const {},
-  }) => SizedBox(
-    width: style.capsuleWidth,
-    height: style.itemHeight * items.length,
-    child: DuoGlassCapsule(
-      symbols: [for (final item in items) item.symbol],
-      titles: [for (final item in items) item.title ?? ''],
-      selectedIndex: selectedIndex,
-      menus: menus,
-      tint: style.tint ?? tint,
-      onPressed: (index, menuIndex) {
-        if (menuIndex < 0) {
-          items[index].onPressed?.call();
-          return;
-        }
-        final entries = menus[index];
-        if (entries != null && menuIndex < entries.length) {
-          entries[menuIndex].onPressed?.call();
-        }
-      },
-    ),
-  );
+  Widget _capsule(DuoBarStyle style, List<DuoBarItem> items, {int? selected}) =>
+      SizedBox(
+        width: style.capsuleWidth,
+        height: style.itemHeight * items.length,
+        child: DuoGlassCapsule(
+          items: items,
+          selectedIndex: selected,
+          tint: style.tint ?? tint,
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -186,25 +170,22 @@ class DuoVerticalBar extends StatelessWidget {
                 SizedBox(height: style.groupSpacing),
               ],
               if (fitted.overflow.isNotEmpty) ...[
-                _capsule(
-                  style,
-                  [
-                    DuoBarItem(
-                      symbol: style.overflowSymbol,
-                      title: style.overflowTitle,
-                    ),
-                  ],
-                  menus: {0: fitted.overflow},
-                ),
+                _capsule(style, [
+                  DuoBarItem(
+                    symbol: style.overflowSymbol,
+                    title: style.overflowTitle,
+                    menu: fitted.overflow,
+                  ),
+                ]),
                 SizedBox(height: style.groupSpacing),
               ],
               const Spacer(),
               if (tabs.isNotEmpty)
                 if (collapseTabs)
                   // One button showing where you are, with the rest behind it.
-                  _capsule(style, [tabs[selectedTab ?? 0]], menus: {0: tabs})
+                  _capsule(style, [tabs[selectedTab ?? 0].copyWith(menu: tabs)])
                 else
-                  _capsule(style, tabs, selectedIndex: selectedTab),
+                  _capsule(style, tabs, selected: selectedTab),
               SizedBox(height: insets.bottom),
             ],
           );

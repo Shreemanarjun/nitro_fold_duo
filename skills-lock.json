@@ -1,6 +1,30 @@
 {
   "version": 1,
   "skills": {
+    "dart-best-practices": {
+      "source": "kevmoo/dash_skills",
+      "sourceType": "github",
+      "skillPath": "skills/dart-best-practices/SKILL.md",
+      "computedHash": "bef12dc34bc172ada836350234702768f7d29fa487114556137513cf5b89b93f"
+    },
+    "dart-cleanup": {
+      "source": "kevmoo/kevmoo_skills",
+      "sourceType": "github",
+      "skillPath": "skills/dart-cleanup/SKILL.md",
+      "computedHash": "78eaacc70d611107698b306ef3dcaf98613bd97ad612e0e84c8fe860abab3c43"
+    },
+    "dart-modern-features": {
+      "source": "kevmoo/dash_skills",
+      "sourceType": "github",
+      "skillPath": "skills/dart-modern-features/SKILL.md",
+      "computedHash": "16b5ffc1e584cb99c2a273ca4f4b7e53921172e5b0610d65ec248a3272047f3d"
+    },
+    "dart-test-coverage": {
+      "source": "kevmoo/dash_skills",
+      "sourceType": "github",
+      "skillPath": "skills/dart-test-coverage/SKILL.md",
+      "computedHash": "e8705157417482c78235108f1518300130f1cd8701e0b60d1af70f6d343da35a"
+    },
     "hinge": {
       "source": "artemnovichkov/hinge",
       "sourceType": "github",

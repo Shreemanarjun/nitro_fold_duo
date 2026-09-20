@@ -115,7 +115,9 @@ void main() {
             child: SizedBox(
               width: 44,
               height: 88,
-              child: DuoGlassCapsule(symbols: ['a', 'b']),
+              child: DuoGlassCapsule(
+                items: [DuoBarItem(symbol: 'a'), DuoBarItem(symbol: 'b')],
+              ),
             ),
           ),
         ),
@@ -134,9 +136,10 @@ void main() {
               width: 44,
               height: 88,
               child: DuoGlassCapsule(
-                symbols: const ['a', 'b'],
-                onPressed: (index, menuIndex) =>
-                    pressed.add((index, menuIndex)),
+                items: [
+                  DuoBarItem(symbol: 'a', onPressed: () => pressed.add((0, -1))),
+                  DuoBarItem(symbol: 'b', onPressed: () => pressed.add((1, -1))),
+                ],
               ),
             ),
           ),
@@ -157,7 +160,10 @@ void main() {
           child: SizedBox(
             width: 44,
             height: 44.0 * symbols.length,
-            child: DuoGlassCapsule(symbols: symbols, selectedIndex: 0),
+            child: DuoGlassCapsule(
+              items: [for (final s in symbols) DuoBarItem(symbol: s)],
+              selectedIndex: 0,
+            ),
           ),
         ),
       );
@@ -222,8 +228,8 @@ void main() {
         find.byType(DuoGlassCapsule),
       );
       expect(capsules.length, lessThan(12));
-      expect(capsules.last.menus[0], isNotNull);
-      expect(capsules.last.symbols.single, kDuoOverflowSymbol);
+      expect(capsules.last.items.single.menu, isNotEmpty);
+      expect(capsules.last.items.single.symbol, kDuoOverflowSymbol);
     });
 
     testWidgets('honours a style override', (tester) async {
@@ -302,8 +308,11 @@ void main() {
           .widgetList<DuoGlassCapsule>(find.byType(DuoGlassCapsule))
           .toList();
       // The tab capsule keeps all three tabs, and something overflowed.
-      expect(capsules.last.symbols, ['one', 'two', 'three']);
-      expect(capsules.any((c) => c.symbols.single == kDuoOverflowSymbol), isTrue);
+      expect([for (final i in capsules.last.items) i.symbol], ['one', 'two', 'three']);
+      expect(
+        capsules.any((c) => c.items.single.symbol == kDuoOverflowSymbol),
+        isTrue,
+      );
     });
 
     testWidgets('prefersBarItems collapses the tab bar into one button', (
@@ -338,8 +347,8 @@ void main() {
           .widgetList<DuoGlassCapsule>(find.byType(DuoGlassCapsule))
           .last;
       // One button, showing where you are, with every tab behind it.
-      expect(tabCapsule.symbols, ['two']);
-      expect(tabCapsule.menus[0], hasLength(3));
+      expect(tabCapsule.items.single.symbol, 'two');
+      expect(tabCapsule.items.single.menu, hasLength(3));
     });
 
     testWidgets('leaves the tab bar alone when everything fits', (
@@ -370,8 +379,14 @@ void main() {
       );
 
       expect(
-        tester.widgetList<DuoGlassCapsule>(find.byType(DuoGlassCapsule)).last
-            .symbols,
+        [
+          for (final item
+              in tester
+                  .widgetList<DuoGlassCapsule>(find.byType(DuoGlassCapsule))
+                  .last
+                  .items)
+            item.symbol,
+        ],
         ['one', 'two'],
       );
     });
@@ -397,48 +412,12 @@ void main() {
   });
 
   group('DuoVerticalBar press routing', () {
-    /// The capsule the bar builds for [items], so its callback can be driven
-    /// the way a native button press does.
-    Future<DuoGlassCapsule> capsuleFor(
+    /// The capsules the bar builds, so what each button carries can be read
+    /// back the way the native side sees it.
+    Future<List<DuoGlassCapsule>> capsulesFor(
       WidgetTester tester,
-      List<DuoBarItem> items,
+      List<DuoBarItem> actions,
     ) async {
-      await tester.binding.setSurfaceSize(duoCoverSize);
-      addTearDown(() => tester.binding.setSurfaceSize(null));
-      await tester.pumpWidget(
-        host(
-          size: duoCoverSize,
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: DuoVerticalBar(state: _coverPose(), actions: items),
-          ),
-        ),
-      );
-      return tester.widget<DuoGlassCapsule>(find.byType(DuoGlassCapsule).first);
-    }
-
-    testWidgets('a plain press runs the item it belongs to', (tester) async {
-      var pressed = 0;
-      final capsule = await capsuleFor(tester, [
-        DuoBarItem(symbol: 'a', onPressed: () => pressed++),
-      ]);
-
-      capsule.onPressed!(0, -1);
-
-      expect(pressed, 1);
-    });
-
-    testWidgets('a menu choice runs the overflowed item', (tester) async {
-      var chosen = '';
-      final actions = [
-        for (var i = 0; i < 12; i++)
-          DuoBarItem(
-            symbol: 'symbol\$i',
-            title: 'Action \$i',
-            endsGroup: true,
-            onPressed: () => chosen = 'Action \$i',
-          ),
-      ];
       await tester.binding.setSurfaceSize(duoCoverSize);
       addTearDown(() => tester.binding.setSurfaceSize(null));
       await tester.pumpWidget(
@@ -450,21 +429,73 @@ void main() {
           ),
         ),
       );
+      return tester
+          .widgetList<DuoGlassCapsule>(find.byType(DuoGlassCapsule))
+          .toList();
+    }
 
-      final overflow = tester.widgetList<DuoGlassCapsule>(
-        find.byType(DuoGlassCapsule),
-      ).firstWhere((c) => c.menus.isNotEmpty);
-      final entries = overflow.menus[0]!;
+    testWidgets('a capsule carries the item it was built from', (tester) async {
+      var pressed = 0;
+      final capsules = await capsulesFor(tester, [
+        DuoBarItem(symbol: 'a', title: 'A', onPressed: () => pressed++),
+      ]);
 
-      overflow.onPressed!(0, 1);
+      final item = capsules.first.items.single;
+      expect(item.symbol, 'a');
+      expect(item.title, 'A');
+
+      item.onPressed!();
+      expect(pressed, 1);
+    });
+
+    testWidgets('overflowed items keep their callbacks in the menu', (
+      tester,
+    ) async {
+      var chosen = '';
+      final capsules = await capsulesFor(tester, [
+        for (var i = 0; i < 12; i++)
+          DuoBarItem(
+            symbol: 'symbol$i',
+            title: 'Action $i',
+            endsGroup: true,
+            onPressed: () => chosen = 'Action $i',
+          ),
+      ]);
+
+      final overflow = capsules.firstWhere((c) => c.items.single.menu.isNotEmpty);
+      final entries = overflow.items.single.menu;
+
+      entries[1].onPressed!();
       expect(chosen, entries[1].title);
 
-      // A choice past the end of the menu is ignored rather than throwing.
-      overflow.onPressed!(0, entries.length + 5);
-      expect(chosen, entries[1].title);
+      // The overflow button itself opens the menu rather than acting.
+      expect(overflow.items.single.onPressed, isNull);
+    });
 
-      // So is a press on a button with no menu behind it.
-      overflow.onPressed!(0, -1);
+    testWidgets('a fallback tap runs the item behind it', (tester) async {
+      final pressed = <String>[];
+      await tester.pumpWidget(
+        host(
+          child: Center(
+            child: SizedBox(
+              width: 44,
+              height: 88,
+              child: DuoGlassCapsule(
+                items: [
+                  DuoBarItem(symbol: 'a', onPressed: () => pressed.add('a')),
+                  DuoBarItem(symbol: 'b', onPressed: () => pressed.add('b')),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final centre = tester.getCenter(find.byType(DuoGlassCapsule));
+      await tester.tapAt(centre + const Offset(0, 22));
+      await tester.pump();
+
+      expect(pressed, ['b']);
     });
   });
 

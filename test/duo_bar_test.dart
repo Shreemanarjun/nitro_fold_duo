@@ -225,6 +225,26 @@ void main() {
   });
 
   group('DuoBarItem', () {
+    test('copyWith keeps the menu it already had', () {
+      const item = DuoBarItem(
+        symbol: 'a',
+        title: 'A',
+        endsGroup: true,
+        menu: [DuoBarItem(symbol: 'x')],
+      );
+
+      final same = item.copyWith();
+      expect(same.symbol, 'a');
+      expect(same.title, 'A');
+      expect(same.endsGroup, isTrue);
+      expect(same.menu, item.menu);
+
+      expect(
+        item.copyWith(menu: const [DuoBarItem(symbol: 'y')]).menu.single.symbol,
+        'y',
+      );
+    });
+
     test('the menu falls back to the symbol when no title is given', () {
       expect(const DuoBarItem(symbol: 'gearshape').menuTitle, 'gearshape');
       expect(

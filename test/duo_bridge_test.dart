@@ -233,12 +233,15 @@ void main() {
               width: 44,
               height: 88,
               child: DuoGlassCapsule(
-                symbols: const ['a', 'b'],
-                titles: const ['A', 'B'],
+                items: const [
+                  DuoBarItem(symbol: 'a', title: 'A'),
+                  DuoBarItem(
+                    symbol: 'b',
+                    title: 'B',
+                    menu: [DuoBarItem(symbol: 'x', title: 'Extra')],
+                  ),
+                ],
                 selectedIndex: 1,
-                menus: {
-                  1: const [DuoBarItem(symbol: 'x', title: 'Extra')],
-                },
               ),
             ),
           ),
@@ -258,25 +261,23 @@ void main() {
       debugSetDuoBridge(fake);
       _mockPlatformViews(tester);
 
-      Widget capsule(Map<int, List<DuoBarItem>> menus) => host(
+      Widget capsule(List<DuoBarItem> menu) => host(
         child: Center(
           child: SizedBox(
             width: 44,
             height: 44,
-            child: DuoGlassCapsule(symbols: const ['a'], menus: menus),
+            child: DuoGlassCapsule(
+              items: [DuoBarItem(symbol: 'a', menu: menu)],
+            ),
           ),
         ),
       );
 
-      await tester.pumpWidget(
-        capsule({
-          0: const [DuoBarItem(symbol: 'x')],
-        }),
-      );
+      await tester.pumpWidget(capsule(const [DuoBarItem(symbol: 'x')]));
       await tester.pumpAndSettle();
       expect(fake.menuUpdates.last.titles, ['x']);
 
-      await tester.pumpWidget(capsule(const {}));
+      await tester.pumpWidget(capsule(const []));
       await tester.pumpAndSettle();
 
       expect(fake.menuUpdates.last.titles, isEmpty);
@@ -289,7 +290,7 @@ void main() {
       debugSetDuoBridge(fake);
       _mockPlatformViews(tester);
 
-      final seen = <(int, int)>[];
+      final seen = <String>[];
       await tester.pumpWidget(
         host(
           child: Center(
@@ -297,8 +298,17 @@ void main() {
               width: 44,
               height: 44,
               child: DuoGlassCapsule(
-                symbols: const ['a'],
-                onPressed: (index, menuIndex) => seen.add((index, menuIndex)),
+                items: [
+                  DuoBarItem(
+                    symbol: 'a',
+                    onPressed: () => seen.add('press'),
+                    menu: [
+                      const DuoBarItem(symbol: 'x'),
+                      const DuoBarItem(symbol: 'y'),
+                      DuoBarItem(symbol: 'z', onPressed: () => seen.add('menu')),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
@@ -310,11 +320,13 @@ void main() {
       final id = fake.capsuleUpdates.last.viewId;
       fake.press(DuoBarPress(viewId: id, index: 0, menuIndex: -1));
       fake.press(DuoBarPress(viewId: id, index: 0, menuIndex: 2));
-      // A press from a capsule that is not ours must be ignored.
+      // Out of range, and from a capsule that is not ours: both ignored.
+      fake.press(DuoBarPress(viewId: id, index: 9, menuIndex: -1));
+      fake.press(DuoBarPress(viewId: id, index: 0, menuIndex: 99));
       fake.press(DuoBarPress(viewId: id + 1000, index: 0, menuIndex: -1));
       await tester.pumpAndSettle();
 
-      expect(seen, [(0, -1), (0, 2)]);
+      expect(seen, ['press', 'menu']);
     }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
 
     testWidgets('stops listening once the last capsule goes', (tester) async {
@@ -328,7 +340,7 @@ void main() {
             child: SizedBox(
               width: 44,
               height: 44,
-              child: DuoGlassCapsule(symbols: ['a']),
+              child: DuoGlassCapsule(items: [DuoBarItem(symbol: 'a')]),
             ),
           ),
         ),

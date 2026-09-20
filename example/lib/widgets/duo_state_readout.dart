@@ -17,6 +17,10 @@ class DuoStateReadout extends StatelessWidget {
   /// strip: it tells a failing bar interaction apart from a failing bridge.
   final VoidCallback onReset;
 
+  String _insets(DuoInsets insets) =>
+      '${insets.left.toStringAsFixed(0)}/${insets.top.toStringAsFixed(0)}/'
+      '${insets.right.toStringAsFixed(0)}/${insets.bottom.toStringAsFixed(0)}';
+
   @override
   Widget build(BuildContext context) {
     // The signals way: read what you need, rebuild when it changes.
@@ -26,45 +30,29 @@ class DuoStateReadout extends StatelessWidget {
         final angle = state.hingeAngle;
         final viewPadding = MediaQuery.viewPaddingOf(context);
         final size = MediaQuery.sizeOf(context);
+        final side = DuoLayout.barSide(viewPadding, state: state);
+
         return Container(
           key: const Key('readout'),
-          color: Colors.deepPurple.shade50,
+          color: Theme.of(context).colorScheme.surfaceContainerLow,
           padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: ListView(
             children: [
               Text('Duo state', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
               Text('supported: ${state.isSupported}'),
               // A narrower signal: this line does not rebuild when a camera
               // region moves, only when the fold status itself changes.
               SignalBuilder(
-                builder: (context) => Text('hinge: ${duoHingeStatus.value.name}'),
+                builder: (context) =>
+                    Text('hinge: ${duoHingeStatus.value.name}'),
               ),
               Text(
                 'angle: ${angle == null ? 'n/a' : '${(angle * 180 / math.pi).toStringAsFixed(1)}°'}',
               ),
               Text('barEdge: ${state.verticalBarEdge.name}'),
-              Text(
-                'barSide: ${DuoLayout.barSide(viewPadding, state: state)?.name ?? 'none'}',
-                key: const Key('barSide'),
-              ),
-              Row(
-                children: [
-                  Text(
-                'corners: ${state.cornerInsets.left.toStringAsFixed(0)}/'
-                '${state.cornerInsets.top.toStringAsFixed(0)}/'
-                '${state.cornerInsets.right.toStringAsFixed(0)}/'
-                '${state.cornerInsets.bottom.toStringAsFixed(0)}',
-              ),
-              Text('action: $lastAction', key: const Key('action')),
-                  const SizedBox(width: 8),
-                  TextButton(
-                    key: const Key('resetAction'),
-                    onPressed: onReset,
-                    child: const Text('reset'),
-                  ),
-                ],
-              ),
+              Text('barSide: ${side?.name ?? 'none'}', key: const Key('barSide')),
+              Text('corners: ${_insets(state.cornerInsets)}'),
               Text(
                 'screen: ${size.width.toStringAsFixed(0)}'
                 '×${size.height.toStringAsFixed(0)} '
@@ -75,23 +63,31 @@ class DuoStateReadout extends StatelessWidget {
                 style: const TextStyle(fontSize: 12),
               ),
               const SizedBox(height: 8),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: state.regions.length,
-                  itemBuilder: (context, index) {
-                    final region = state.regions[index];
-                    return Text(
-                      '${region.kind.name}'
-                      '${region.isActive ? '' : ' (inactive)'} '
-                      '${region.rect.left.toStringAsFixed(0)},'
-                      '${region.rect.top.toStringAsFixed(0)} '
-                      '${region.rect.width.toStringAsFixed(0)}×'
-                      '${region.rect.height.toStringAsFixed(0)}',
-                      style: const TextStyle(fontSize: 12),
-                    );
-                  },
-                ),
+              // Wraps rather than overflowing: the strip leaves this pane
+              // narrow, and the action text grows with whatever was pressed.
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                children: [
+                  Text('action: $lastAction', key: const Key('action')),
+                  TextButton(
+                    key: const Key('resetAction'),
+                    onPressed: onReset,
+                    child: const Text('reset'),
+                  ),
+                ],
               ),
+              const SizedBox(height: 8),
+              for (final region in state.regions)
+                Text(
+                  '${region.kind.name}'
+                  '${region.isActive ? '' : ' (inactive)'} '
+                  '${region.rect.left.toStringAsFixed(0)},'
+                  '${region.rect.top.toStringAsFixed(0)} '
+                  '${region.rect.width.toStringAsFixed(0)}×'
+                  '${region.rect.height.toStringAsFixed(0)}',
+                  style: const TextStyle(fontSize: 12),
+                ),
             ],
           ),
         );

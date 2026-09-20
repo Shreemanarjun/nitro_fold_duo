@@ -85,14 +85,14 @@ Future<void> main(List<String> args) async {
     ]);
     final tree = read.stdout as String;
 
+    // Read the status line, which every tab shows.
     final status = RegExp(r'hinge: (\w+)').firstMatch(tree)?.group(1);
     final screen = RegExp(r'screen: (\d+)×(\d+)').firstMatch(tree);
     final width = int.tryParse(screen?.group(1) ?? '');
     final height = int.tryParse(screen?.group(2) ?? '');
-    // "division ..." is active; "division (inactive) ..." is not.
-    final hasActiveDivision = RegExp(
-      r'division (?!\(inactive\))',
-    ).hasMatch(tree);
+    // The status line names the active division, or says there is none.
+    final hasActiveDivision = !tree.contains('no division') &&
+        RegExp(r'division \d').hasMatch(tree);
 
     // The strip the system reserves in this pose, read the way the plugin
     // reads it: a side-only inset with no top inset.
@@ -105,7 +105,9 @@ Future<void> main(List<String> args) async {
     final strip = top != 0 ? 0.0 : (left > 0 ? left : right);
 
     final body = double.tryParse(
-      RegExp(r'Key: "readout".*?"width":([\d.]+)').firstMatch(tree)?.group(1) ??
+      RegExp(
+            r'Key: "statusLine".*?"width":([\d.]+)',
+          ).firstMatch(tree)?.group(1) ??
           '',
     );
 
