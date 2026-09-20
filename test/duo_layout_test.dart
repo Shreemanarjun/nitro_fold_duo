@@ -19,6 +19,7 @@ DuoReservedRegion _region(DuoRegionKind kind, Rect r, {bool isActive = true}) =>
 DuoState _state(List<DuoReservedRegion> regions) => DuoState(
   isSupported: true,
   hingeStatus: DuoHingeStatus.partiallyOpen,
+  verticalBarEdge: DuoVerticalBarEdge.trailing,
   hingeAngle: 1.5,
   regions: regions,
 );

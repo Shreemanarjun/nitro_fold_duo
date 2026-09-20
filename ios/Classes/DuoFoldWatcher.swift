@@ -21,13 +21,15 @@ extension DuoReservedRegion: Equatable {
 extension DuoState: Equatable {
     public static func == (a: Self, b: Self) -> Bool {
         a.isSupported == b.isSupported && a.hingeStatus == b.hingeStatus
+            && a.verticalBarEdge == b.verticalBarEdge
             && a.hingeAngle == b.hingeAngle && a.regions == b.regions
     }
 }
 
 extension DuoState {
     static let unavailable = DuoState(
-        isSupported: false, hingeStatus: .unknown, hingeAngle: nil, regions: [])
+        isSupported: false, hingeStatus: .unknown, verticalBarEdge: .unspecified,
+        hingeAngle: nil, regions: [])
 }
 
 /// Hand-off between the UIKit main thread (writer) and Dart's UI isolate
@@ -93,6 +95,7 @@ final class DuoFoldWatcher {
     private var probe: DuoProbeView?
     private var hingeAngle: Double?
     private var hingeStatus: DuoHingeStatus = .unknown
+    private var traitRegistration: (any UITraitChangeRegistration)?
 
     init(box: DuoStateBox) {
         self.box = box
@@ -112,6 +115,15 @@ final class DuoFoldWatcher {
         probe.backgroundColor = .clear
         probe.onGeometryChange = { [weak self] in self?.recompute() }
         host.addSubview(probe)
+
+        // Layout already covers a rotation, but the vertical-bar edge is a
+        // trait: register for it directly so an edge change can never be
+        // missed. Older systems fall back to the layout signal.
+        if #available(iOS 27.1, *) {
+            traitRegistration = probe.registerForTraitChanges(
+                UITraitCollection.systemTraitsAffectingVerticalBarEdge
+            ) { [weak self] (_: DuoProbeView, _) in self?.recompute() }
+        }
 
         if #available(iOS 27.1, *) {
             probe.addInteraction(UIHingeInteraction { [weak self] _, update in
@@ -142,9 +154,14 @@ final class DuoFoldWatcher {
 
         var regions: [DuoReservedRegion] = []
         var supported = false
+        var barEdge = DuoVerticalBarEdge.unspecified
 
         if #available(iOS 27.1, *) {
             supported = true
+            barEdge =
+                DuoVerticalBarEdge(
+                    rawValue: Int64(probe.traitCollection.verticalBarEdge.rawValue))
+                ?? .unspecified
             let kinds: [(UIView.ReservedRegion.Kind, DuoRegionKind)] = [
                 (.division, .division),
                 (.occlusion, .occlusion),
@@ -173,7 +190,7 @@ final class DuoFoldWatcher {
         box.publish(
             DuoState(
                 isSupported: supported, hingeStatus: hingeStatus,
-                hingeAngle: hingeAngle, regions: regions))
+                verticalBarEdge: barEdge, hingeAngle: hingeAngle, regions: regions))
     }
 
     /// The `FlutterViewController`'s view, so region frames land in Flutter's

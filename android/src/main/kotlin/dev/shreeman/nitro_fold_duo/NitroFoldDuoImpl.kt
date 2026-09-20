@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import nitro.nitro_fold_duo_module.DuoHingeStatus
 import nitro.nitro_fold_duo_module.DuoState
+import nitro.nitro_fold_duo_module.DuoVerticalBarEdge
 import nitro.nitro_fold_duo_module.HybridNitroFoldDuoSpec
 
 /// Native implementation of HybridNitroFoldDuoSpec.
@@ -25,6 +26,7 @@ class NitroFoldDuoImpl : HybridNitroFoldDuoSpec {
         val UNAVAILABLE = DuoState(
             isSupported = false,
             hingeStatus = DuoHingeStatus.UNKNOWN,
+            verticalBarEdge = DuoVerticalBarEdge.UNSPECIFIED,
             hingeAngle = null,
             regions = emptyList(),
         )

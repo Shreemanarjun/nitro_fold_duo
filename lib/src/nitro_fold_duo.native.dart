@@ -20,6 +20,17 @@ enum DuoRegionKind {
   division,
 }
 
+/// Mirrors `UIVerticalBarEdge` (UIKit, iOS 27.1): the edge where the system
+/// places the vertical bar — the status cluster, back button, toolbar and tab
+/// bar that move off the top on the cover display and in inner landscape.
+///
+/// This reflects the system's preferred edge whether or not a bar is currently
+/// visible, so it is not a visibility flag. [unspecified] means the system
+/// never places one here — including the inner display in portrait, where the
+/// bars stay horizontal.
+@HybridEnum()
+enum DuoVerticalBarEdge { unspecified, leading, trailing }
+
 /// A system-reserved region of the Flutter view.
 ///
 /// [rect] is in Flutter logical pixels relative to the Flutter view's origin
@@ -64,6 +75,9 @@ class DuoState {
 
   final DuoHingeStatus hingeStatus;
 
+  /// Which edge the system reserves for the vertical bar.
+  final DuoVerticalBarEdge verticalBarEdge;
+
   /// Hinge angle in radians, or null when no hinge is available in this
   /// context. The update rate and precision are system policy.
   final double? hingeAngle;
@@ -74,6 +88,7 @@ class DuoState {
   const DuoState({
     required this.isSupported,
     required this.hingeStatus,
+    required this.verticalBarEdge,
     required this.hingeAngle,
     required this.regions,
   });
