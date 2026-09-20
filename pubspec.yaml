@@ -1,7 +1,18 @@
 name: nitro_fold_duo
-description: "A new Flutter FFI plugin project."
+description: iPhone Duo support for Flutter backed by UIKit's reserved-region, hinge and vertical-bar APIs over Nitro FFI, with fold-aware layout and Liquid Glass chrome.
 version: 0.0.1
-homepage:
+homepage: https://github.com/Shreemanarjun/nitro_fold_duo
+repository: https://github.com/Shreemanarjun/nitro_fold_duo
+issue_tracker: https://github.com/Shreemanarjun/nitro_fold_duo/issues
+documentation: https://github.com/Shreemanarjun/nitro_fold_duo/blob/main/README.md
+funding:
+  - https://buymeacoffee.com/shreemanarjun
+topics:
+  - foldable
+  - iphone-duo
+  - ffi
+  - nitro
+  - layout
 
 environment:
   sdk: ^3.13.3
