@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nitro_fold_duo_example/app.dart';
+import 'package:nitro_fold_duo_example/data/articles.dart';
 import 'package:patrol/patrol.dart';
 
 /// XCUITest cannot deliver a touch to a UIKit control hosted inside a Flutter
@@ -14,23 +15,29 @@ void main() {
   patrolTest('the bridge reports Duo geometry', ($) async {
     await $.pumpWidgetAndSettle(const DuoDemoApp());
 
-    await $('supported: true').waitUntilVisible();
+    // The status line sits under every tab, so this does not depend on which
+    // one is up. A posture at all means the reserved regions came back from
+    // the bridge; without it the state would be `unknown`.
+    await $(RegExp('hinge: (closed|partiallyOpen|fullyOpen)'))
+        .waitUntilVisible();
   });
 
   patrolTest('a Flutter control in the body reaches Dart', ($) async {
     await $.pumpWidgetAndSettle(const DuoDemoApp());
 
-    await $(const Key('resetAction')).tap();
+    await $(const Key('article_1')).tap();
 
-    await $('action: reset').waitUntilVisible();
+    // Scoped to the detail pane: the list shows the same title on its own side
+    // of the fold, and matching that would prove nothing.
+    await $(const Key('articleDetail')).$(articles[1].title).waitUntilVisible();
   });
 
   patrolTest('a toolbar capsule button reaches Dart', skip: true, ($) async {
     await $.pumpWidgetAndSettle(const DuoDemoApp());
 
-    await $.platform.tap(Selector(text: 'Share'));
+    await $.platform.tap(Selector(text: 'Fold-aware dialog'));
 
-    await $('action: share').waitUntilVisible();
+    await $(const Key('foldDialog')).waitUntilVisible();
   });
 
   patrolTest('items that do not fit open in the overflow menu', skip: true, (
@@ -40,17 +47,16 @@ void main() {
 
     // The tail of the toolbar is in a UIMenu behind the overflow capsule.
     await $.platform.tap(Selector(text: 'More'));
-    await $.platform.tap(Selector(text: 'Enhance'));
 
-    await $('action: enhance').waitUntilVisible();
+    await $.platform.mobile.waitUntilVisible(Selector(text: 'Enhance'));
   });
 
   patrolTest('the tab capsule switches the body', skip: true, ($) async {
     await $.pumpWidgetAndSettle(const DuoDemoApp());
 
-    await $.platform.tap(Selector(text: 'Split'));
+    await $.platform.tap(Selector(text: 'State'));
 
-    await $('PRIMARY').waitUntilVisible();
+    await $('Duo state').waitUntilVisible();
   });
 
   patrolTest('the back capsule pops the pushed page', skip: true, ($) async {
@@ -61,6 +67,6 @@ void main() {
 
     await $.platform.tap(Selector(text: 'Back'));
 
-    await $('Duo state').waitUntilVisible();
+    await $(const Key('articleList')).waitUntilVisible();
   });
 }

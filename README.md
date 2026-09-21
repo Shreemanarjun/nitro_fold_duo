@@ -529,12 +529,13 @@ Flutter path do run:
 
 ```sh
 cd example
+dart pub global activate patrol_cli 4.8.0
 ruby tool/setup_patrol_ios.rb   # once, and after a Patrol upgrade
 patrol test --target integration_test/patrol_test.dart -d <duo-udid>
 ```
 
-`patrol_cli` 4.7 reports `Total: 0` against Xcode 27.1 result bundles even when
-tests ran. Read the bundle instead:
+`patrol_cli` reports `Total: 0` against Xcode 27.1 result bundles even when
+tests ran — still so in 4.8.0. Read the bundle instead:
 
 ```sh
 xcrun xcresulttool get test-results tests --path build/ios_results_*.xcresult
