@@ -43,11 +43,14 @@ class _HomePageState extends State<HomePage> {
           .push(MaterialPageRoute<void>(builder: (_) => const DetailPage()));
 
   /// Deliberately more actions than the strip can hold, so the tail lands in
-  /// the system overflow menu.
+  /// the system overflow menu. Priorities decide which capsules survive: the
+  /// demo's headline action outranks its position, and the cosmetic pair goes
+  /// first however much room is left.
   List<DuoBarItem> get _actions => [
     DuoBarItem(
       symbol: 'rectangle.split.2x1',
       title: 'Fold-aware dialog',
+      visibilityPriority: DuoBarVisibilityPriority.high,
       onPressed: () => showFoldAwareDialog(context),
     ),
     DuoBarItem(
@@ -77,12 +80,14 @@ class _HomePageState extends State<HomePage> {
     DuoBarItem(
       symbol: 'textformat',
       title: 'Format',
+      visibilityPriority: DuoBarVisibilityPriority.low,
       onPressed: () => _record('format'),
     ),
     DuoBarItem(
       symbol: 'paintbrush',
       title: 'Theme',
       endsGroup: true,
+      visibilityPriority: DuoBarVisibilityPriority.low,
       onPressed: () => _record('theme'),
     ),
     DuoBarItem(

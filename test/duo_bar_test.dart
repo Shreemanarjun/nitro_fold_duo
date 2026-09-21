@@ -245,6 +245,104 @@ void main() {
       expect(fitted.visible, isEmpty);
       expect(fitted.overflow, isEmpty);
     });
+
+    // Three 56-point capsules against 130 points: the overflow capsule takes
+    // 56 of it, leaving room for one of them. Priority decides which.
+    const three = 130.0;
+
+    test('a low priority goes before the capsule below it', () {
+      final fitted = duoBarOverflow(
+        available: three,
+        groups: const [
+          [
+            DuoBarItem(
+              symbol: 'a',
+              title: 'a',
+              visibilityPriority: DuoBarVisibilityPriority.low,
+            ),
+          ],
+          [DuoBarItem(symbol: 'b', title: 'b')],
+          [DuoBarItem(symbol: 'c', title: 'c')],
+        ],
+      );
+
+      expect(fitted.visible.map(symbolsOf), [
+        ['b'],
+      ]);
+      expect(symbolsOf(fitted.overflow), ['a', 'c']);
+    });
+
+    test('a high priority keeps the capsule that would have gone first', () {
+      final fitted = duoBarOverflow(
+        available: three,
+        groups: const [
+          [DuoBarItem(symbol: 'a', title: 'a')],
+          [DuoBarItem(symbol: 'b', title: 'b')],
+          [
+            DuoBarItem(
+              symbol: 'c',
+              title: 'c',
+              visibilityPriority: DuoBarVisibilityPriority.high,
+            ),
+          ],
+        ],
+      );
+
+      expect(fitted.visible.map(symbolsOf), [
+        ['c'],
+      ]);
+      expect(symbolsOf(fitted.overflow), ['a', 'b']);
+    });
+
+    test('a capsule is as important as its most important button', () {
+      // Room for the overflow capsule and 114 points. Left alone the two
+      // single capsules would survive; the pair outranks them because one of
+      // its buttons does.
+      final fitted = duoBarOverflow(
+        available: 170,
+        groups: const [
+          [DuoBarItem(symbol: 'a', title: 'a')],
+          [
+            DuoBarItem(symbol: 'b', title: 'b'),
+            DuoBarItem(
+              symbol: 'c',
+              title: 'c',
+              visibilityPriority: DuoBarVisibilityPriority.high,
+            ),
+          ],
+          [DuoBarItem(symbol: 'd', title: 'd')],
+        ],
+      );
+
+      expect(fitted.visible.map(symbolsOf), [
+        ['b', 'c'],
+      ]);
+      expect(symbolsOf(fitted.overflow), ['a', 'd']);
+    });
+  });
+
+  group('DuoBarVisibilityPriority', () {
+    test('ranks low below automatic and high above it', () {
+      expect(
+        DuoBarVisibilityPriority.low.rank,
+        lessThan(DuoBarVisibilityPriority.automatic.rank),
+      );
+      expect(
+        DuoBarVisibilityPriority.high.rank,
+        greaterThan(DuoBarVisibilityPriority.automatic.rank),
+      );
+    });
+
+    test('derives a priority either side of another', () {
+      expect(
+        DuoBarVisibilityPriority.lowerThan(DuoBarVisibilityPriority.low).rank,
+        lessThan(DuoBarVisibilityPriority.low.rank),
+      );
+      expect(
+        DuoBarVisibilityPriority.higherThan(DuoBarVisibilityPriority.high).rank,
+        greaterThan(DuoBarVisibilityPriority.high.rank),
+      );
+    });
   });
 
   group('DuoBarItem', () {
@@ -254,6 +352,7 @@ void main() {
         title: 'A',
         endsGroup: true,
         menu: [DuoBarItem(symbol: 'x', title: 'x')],
+        visibilityPriority: DuoBarVisibilityPriority.high,
       );
 
       final same = item.copyWith();
@@ -261,6 +360,7 @@ void main() {
       expect(same.title, 'A');
       expect(same.endsGroup, isTrue);
       expect(same.menu, item.menu);
+      expect(same.visibilityPriority, DuoBarVisibilityPriority.high);
 
       expect(
         item

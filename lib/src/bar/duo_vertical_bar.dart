@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/widgets.dart';
 
 import '../nitro_fold_duo.native.dart';
@@ -10,6 +12,13 @@ import 'duo_glass_capsule.dart';
 double duoCapsuleExtent(int count, {DuoBarStyle style = const DuoBarStyle()}) =>
     style.capsuleExtent(count);
 
+/// A capsule is as important as its most important button, since a group moves
+/// as a unit.
+double _priorityOf(List<DuoBarItem> group) => group.fold(
+  DuoBarVisibilityPriority.low.rank,
+  (rank, item) => math.max(rank, item.visibilityPriority.rank),
+);
+
 /// Splits toolbar [groups] into the capsules that fit in [available] points of
 /// strip and the items that move into the system overflow menu.
 ///
@@ -17,32 +26,45 @@ double duoCapsuleExtent(int count, {DuoBarStyle style = const DuoBarStyle()}) =>
 /// bar that overflows never overflows by exactly one item. Groups are kept
 /// whole and in order: a group either fits or goes to the menu entire, which
 /// keeps the pairing a horizontal toolbar would show.
+///
+/// The lowest [DuoBarItem.visibilityPriority] goes first, and between equals
+/// the one nearest the bottom — so a bar nobody has prioritised overflows
+/// bottom to top, as the system's does.
 ({List<List<DuoBarItem>> visible, List<DuoBarItem> overflow}) duoBarOverflow({
   required List<List<DuoBarItem>> groups,
   required double available,
   DuoBarStyle style = const DuoBarStyle(),
 }) {
-  final total = groups.fold(
-    0.0,
-    (sum, g) => sum + style.capsuleExtent(g.length),
-  );
-  if (total <= available) {
+  var used = groups.fold(0.0, (sum, g) => sum + style.capsuleExtent(g.length));
+  if (used <= available) {
     return (visible: groups, overflow: const <DuoBarItem>[]);
   }
 
   final budget = available - style.capsuleExtent(1);
-  final visible = <List<DuoBarItem>>[];
-  var used = 0.0;
-  var index = 0;
-  for (; index < groups.length; index++) {
-    final extent = style.capsuleExtent(groups[index].length);
-    if (used + extent > budget) break;
-    used += extent;
-    visible.add(groups[index]);
+  final order = [for (var i = 0; i < groups.length; i++) i]
+    ..sort((a, b) {
+      final byPriority = _priorityOf(
+        groups[a],
+      ).compareTo(_priorityOf(groups[b]));
+      return byPriority != 0 ? byPriority : b.compareTo(a);
+    });
+
+  final dropped = <int>{};
+  for (final index in order) {
+    if (used <= budget) break;
+    used -= style.capsuleExtent(groups[index].length);
+    dropped.add(index);
   }
+
   return (
-    visible: visible,
-    overflow: [for (final group in groups.skip(index)) ...group],
+    visible: [
+      for (var i = 0; i < groups.length; i++)
+        if (!dropped.contains(i)) groups[i],
+    ],
+    overflow: [
+      for (var i = 0; i < groups.length; i++)
+        if (dropped.contains(i)) ...groups[i],
+    ],
   );
 }
 

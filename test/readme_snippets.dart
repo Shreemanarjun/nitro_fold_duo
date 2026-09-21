@@ -24,6 +24,7 @@ class ArticleDetail extends StatelessWidget {
 void share() {}
 void save() {}
 void settings() {}
+void compose() {}
 void edit() {}
 void delete() {}
 void pop() {}
@@ -141,6 +142,13 @@ Widget _scaffold(BuildContext context) => DuoBarScaffold(
     body: body,
   ),
   body: body,
+);
+
+DuoBarItem _priority() => DuoBarItem(
+  symbol: 'square.and.pencil',
+  title: 'Compose',
+  onPressed: compose,
+  visibilityPriority: DuoBarVisibilityPriority.high,
 );
 
 DuoBarItem _item() => DuoBarItem(

@@ -307,7 +307,7 @@ The strip is composed in Flutter. iOS only moves bars it manages itself,
 meaning `navigationItem` groups under a `UINavigationController`, which a
 Flutter app does not have; the layout, ordering and overflow rule are
 reimplemented here to match. The capsules, their buttons and the overflow menu
-are real UIKit. Not implemented: `visibilityPriority`, badges, `axisBehavior`,
+are real UIKit. Not implemented: badges, `axisBehavior`,
 `UIVerticalBarBehavior.disabled`.
 
 ### DuoBarItem
@@ -332,14 +332,39 @@ DuoBarItem(
 | `onPressed` | Unused when `menu` is non-empty — the button opens the menu |
 | `endsGroup` | Start a new capsule after this item |
 | `menu` | Entries behind this item in a real `UIMenu` |
+| `visibilityPriority` | How long this item keeps its place in the strip |
 
-Both are required because the system needs both: the symbol for a vertical
-presentation, the title for a menu or an expanded form.
+`symbol` and `title` are both required because the system needs both: the
+symbol for a vertical presentation, the title for a menu or an expanded form.
 
 Items that do not fit the strip move into an overflow capsule with a real
 `UIMenu`. Room for that capsule is taken out of the budget first, so a bar
-never overflows by exactly one item. Groups stay whole and in order, and the
-bottom-most group overflows first.
+never overflows by exactly one item. Groups stay whole and in order.
+
+### Visibility priority
+
+Left alone, a bar overflows bottom to top. `DuoBarVisibilityPriority` changes
+that order — the mirror of `ToolbarItemVisibilityPriority`:
+
+```dart
+DuoBarItem(
+  symbol: 'square.and.pencil',
+  title: 'Compose',
+  onPressed: compose,
+  visibilityPriority: DuoBarVisibilityPriority.high,
+)
+```
+
+| Value | |
+|---|---|
+| `automatic` | The default. Position alone decides |
+| `low` | Into the menu before anything default or high |
+| `high` | Stays in the strip longer. The action people reach for most, and anything carrying status |
+| `lowerThan(p)`, `higherThan(p)` | A rank either side of another |
+
+The lowest priority goes first, and between equals the capsule nearest the
+bottom. Capsules move whole, so a capsule is as important as its most
+important button — give a group one priority to move it as a unit.
 
 ### DuoVerticalBar
 
@@ -490,7 +515,7 @@ not at the view's top-left. `DuoState` also carries `activeDivision`,
 ## Testing
 
 ```sh
-flutter test                 # 111 tests, 100% line coverage
+flutter test                 # 116 tests, 100% line coverage
 ```
 
 Stage device state without hardware:
