@@ -13,6 +13,17 @@ topics:
   - ffi
   - nitro
   - layout
+screenshots:
+  - description: 'The vertical bar on the outer display: toolbar groups, the system overflow capsule and the tab bar, as Liquid Glass capsules.'
+    path: doc/screenshots/outer-display.png
+  - description: 'The inner display partially folded. DuoSplit puts each pane on its own side of the crease and leaves the reserved band empty.'
+    path: doc/screenshots/inner-folded.png
+  - description: 'The inner display open flat. With no fold to divide it, the panes share the box side by side.'
+    path: doc/screenshots/inner-open.png
+  - description: 'A Flutter dialog kept clear of the crease, because DuoDisplayFeatures published the fold into MediaQuery.'
+    path: doc/screenshots/fold-aware-dialog.png
+  - description: 'Everything the bridge reports: posture, hinge angle, bar edge, corner insets and every reserved region.'
+    path: doc/screenshots/duo-state.png
 
 environment:
   sdk: ^3.13.3

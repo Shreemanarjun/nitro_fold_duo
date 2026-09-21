@@ -20,6 +20,12 @@ SignalBuilder(
 `signals_flutter` is re-exported, so `SignalBuilder`, `signal` and `computed`
 come with that one import.
 
+| Closed | Partially folded | Open flat |
+|---|---|---|
+| ![The vertical bar on the outer display](doc/screenshots/outer-display.png) | ![Two panes either side of the crease](doc/screenshots/inner-folded.png) | ![The same layout side by side](doc/screenshots/inner-open.png) |
+
+The example app, on an iPhone Duo running iOS 27.1. One layout, three poses.
+
 ## Requirements
 
 | | |
@@ -129,6 +135,11 @@ or on an unsupported platform — it reports `duoStateUnavailable` rather than
 throwing. The native subscription starts on first read and is shared across
 listeners.
 
+![Everything the bridge reports](doc/screenshots/duo-state.png)
+
+Asking the simulator for 135° returns 132.5°, which is why the posture is the
+thing to branch on.
+
 ### DuoState
 
 | Field | Type | |
@@ -188,6 +199,8 @@ DuoSplit(
 )
 ```
 
+![DuoSplit either side of the crease](doc/screenshots/inner-folded.png)
+
 With no fold crossing the box, the panes share it the way the system's split
 arrangement does: side by side when the box is wider than it is tall, stacked
 when it is taller than it is wide. Pass `fallbackAxis` to pin one axis.
@@ -230,6 +243,12 @@ MaterialApp(
 )
 ```
 
+![A dialog placed clear of the crease](doc/screenshots/fold-aware-dialog.png)
+
+The dialog above is an ordinary `showDialog`. It sits in one half because the
+fold reached `MediaQuery`; open the device flat and it centres across the
+whole display.
+
 An active division becomes a `fold` feature carrying its posture; a camera
 becomes a `cutout`. Platform-reported features are preserved, so an Android
 foldable keeps its own. A flat fold is reported inactive by the device and is
@@ -246,6 +265,8 @@ final features = duoDisplayFeatures(duoState.value);
 On iPhone Duo the toolbar and tab bar move to a vertical strip at the side of
 the display, as native Liquid Glass capsules. This reserves that strip, draws
 the bar in it, and keeps `body` clear.
+
+![The vertical bar on the outer display](doc/screenshots/outer-display.png)
 
 ```dart
 DuoBarScaffold(
