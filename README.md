@@ -132,15 +132,34 @@ icon announces nothing on its own.
 
 ### Styling
 
-`DuoBarStyle` carries measurements and tint, defaulting to system values. Apply
-per bar, or once via `DuoBarTheme`:
+`DuoBarStyle` carries every measurement and tint the bar draws with, defaulting
+to system values. Apply per bar, or once via `DuoBarTheme`:
 
 ```dart
 DuoBarTheme(
-  style: const DuoBarStyle(capsuleWidth: 52, tint: Color(0xFF6750A4)),
+  style: const DuoBarStyle(
+    capsuleWidth: 52,
+    symbolPointSize: 20,
+    tint: Color(0xFF6750A4),
+    titleBackdropRadius: 16,
+  ),
   child: DuoBarScaffold(body: body),
 )
 ```
+
+| Field | Controls |
+|---|---|
+| `capsuleWidth`, `itemHeight`, `groupSpacing`, `edgeMargin` | Capsule geometry and spacing |
+| `symbolPointSize` | SF Symbol size inside a capsule |
+| `stripWidth` | Overrides the system's reserved inset |
+| `tint` | Capsule button colour |
+| `titleBandHeight`, `titlePadding`, `titleBackdropRadius` | The leading-edge title band |
+| `overflowSymbol`, `overflowTitle` | The overflow capsule |
+| `compression` | What gives way when the strip runs out |
+
+Other widgets take their own overrides: `DuoSplit.band` draws inside the
+reserved crease, `DuoOcclusionSafeArea.minimum` sets a floor under the computed
+insets, and `DuoGlassSurface` takes `borderRadius` and `tint`.
 
 `DuoBarStyle.compression` mirrors `UIVerticalBarCompressionBehavior`
 (SwiftUI: `.toolbarVerticalCompressionBehavior(.prefersToolbarItems)`):
@@ -181,13 +200,18 @@ value or hands arguments to the main thread and returns.
 Presses return on one `@NitroStream(backpressure: batch)` shared by every
 capsule, demultiplexed in Dart by platform view id, so a burst crosses once.
 
+Pushes are diffed before they cross. The hinge angle ticks while the device
+folds, rebuilding the bar many times a second with identical contents; a
+capsule only calls the bridge when its buttons, selection, tint or symbol size
+actually changed, and menus are diffed per button on top of that.
+
 `updateGlassCapsule` is not marked `@mainThread`: on a synchronous method that
 blocks the calling Dart thread until the main thread finishes.
 
 ## Testing
 
 ```sh
-flutter test                 # 101 tests, 100% line coverage
+flutter test                 # 109 tests, 100% line coverage
 ```
 
 Stage device state without hardware:

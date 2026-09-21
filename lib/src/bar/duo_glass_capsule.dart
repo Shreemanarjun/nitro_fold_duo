@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:ui' show ImageFilter;
 
-import 'package:flutter/foundation.dart' show Factory, defaultTargetPlatform;
+import 'package:flutter/foundation.dart'
+    show Factory, defaultTargetPlatform, listEquals;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
@@ -21,6 +22,7 @@ class DuoGlassCapsule extends StatefulWidget {
     required this.items,
     this.selectedIndex,
     this.tint,
+    this.symbolPointSize = kDuoBarSymbolPointSize,
   });
 
   /// The buttons, top to bottom. Each carries its own symbol, accessibility
@@ -33,6 +35,9 @@ class DuoGlassCapsule extends StatefulWidget {
 
   final Color? tint;
 
+  /// Point size of the SF Symbols drawn in the buttons.
+  final double symbolPointSize;
+
   @override
   State<DuoGlassCapsule> createState() => _DuoGlassCapsuleState();
 }
@@ -44,7 +49,20 @@ class _DuoGlassCapsuleState extends State<DuoGlassCapsule> {
   static StreamSubscription<DuoBarPress>? _presses;
 
   int? _viewId;
-  Set<int> _pushedMenus = const {};
+  Map<int, List<String>> _pushedMenus = const {};
+
+  /// What was last handed to the native side. The hinge angle ticks while the
+  /// device folds, so the bar rebuilds many times a second with contents that
+  /// have not changed; without this each rebuild would cross the bridge again.
+  ({
+    List<String> symbols,
+    List<String> titles,
+    int selected,
+    int tint,
+    double size,
+    bool dark,
+  })?
+  _pushed;
 
   /// Runs the item a press belongs to — the button itself, or the entry chosen
   /// from its menu. Out-of-range indices are ignored rather than thrown: they
@@ -73,32 +91,71 @@ class _DuoGlassCapsuleState extends State<DuoGlassCapsule> {
     final id = _viewId;
     final duo = duoBridge;
     if (id == null || duo == null) return;
+    _pushContents(duo, id);
+    _pushMenus(duo, id);
+  }
+
+  /// The buttons themselves. Skipped when nothing about them changed.
+  void _pushContents(NitroFoldDuo duo, int id) {
+    final next = (
+      symbols: [for (final item in widget.items) item.symbol],
+      titles: [for (final item in widget.items) item.title ?? ''],
+      selected: widget.selectedIndex ?? -1,
+      tint: widget.tint?.toARGB32() ?? 0,
+      size: widget.symbolPointSize,
+      dark: MediaQuery.platformBrightnessOf(context) == Brightness.dark,
+    );
+    final previous = _pushed;
+    if (previous != null &&
+        previous.selected == next.selected &&
+        previous.tint == next.tint &&
+        previous.size == next.size &&
+        previous.dark == next.dark &&
+        listEquals(previous.symbols, next.symbols) &&
+        listEquals(previous.titles, next.titles)) {
+      return;
+    }
+    // Rebuilding the buttons on the native side drops their menus, so a
+    // contents push invalidates every menu behind it.
+    _pushedMenus = const {};
+    _pushed = next;
+
     duo.updateGlassCapsule(
       id,
-      [for (final item in widget.items) item.symbol],
-      [for (final item in widget.items) item.title ?? ''],
-      widget.selectedIndex ?? -1,
-      widget.tint?.toARGB32() ?? 0,
-      MediaQuery.platformBrightnessOf(context) == Brightness.dark,
+      next.symbols,
+      next.titles,
+      next.selected,
+      next.tint,
+      next.size,
+      next.dark,
     );
+  }
 
-    // Rebuilding the buttons drops their menus, so push every menu after the
-    // contents, and clear any button that had one and no longer does.
-    final withMenus = <int>{};
+  /// The overflow menus, diffed per button: one that gained, changed or lost
+  /// its entries is pushed, and one that is unchanged is left alone.
+  void _pushMenus(NitroFoldDuo duo, int id) {
+    final next = <int, List<String>>{};
     for (final (index, item) in widget.items.indexed) {
       if (item.menu.isEmpty) continue;
-      withMenus.add(index);
+      next[index] = [
+        for (final entry in item.menu) '${entry.menuTitle}\u0000${entry.symbol}',
+      ];
+    }
+
+    for (final MapEntry(key: index, value: entries) in next.entries) {
+      if (listEquals(_pushedMenus[index], entries)) continue;
+      final menu = widget.items[index].menu;
       duo.setGlassCapsuleMenu(
         id,
         index,
-        [for (final entry in item.menu) entry.menuTitle],
-        [for (final entry in item.menu) entry.symbol],
+        [for (final entry in menu) entry.menuTitle],
+        [for (final entry in menu) entry.symbol],
       );
     }
-    for (final index in _pushedMenus.difference(withMenus)) {
+    for (final index in _pushedMenus.keys.toSet().difference(next.keys.toSet())) {
       duo.setGlassCapsuleMenu(id, index, const [], const []);
     }
-    _pushedMenus = withMenus;
+    _pushedMenus = next;
   }
 
   @override

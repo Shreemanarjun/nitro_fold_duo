@@ -56,13 +56,14 @@ class DuoBarScaffold extends StatelessWidget {
   Widget _titleBand(DuoBarStyle style) {
     final label = Align(
       alignment: AlignmentDirectional.centerStart,
-      child: Padding(
-        padding: const EdgeInsetsDirectional.only(start: 20),
-        child: title,
-      ),
+      child: Padding(padding: style.titlePadding, child: title),
     );
     return titleBackdrop
-        ? DuoGlassSurface(tint: style.tint, child: label)
+        ? DuoGlassSurface(
+            borderRadius: style.titleBackdropRadius,
+            tint: style.tint,
+            child: label,
+          )
         : label;
   }
 

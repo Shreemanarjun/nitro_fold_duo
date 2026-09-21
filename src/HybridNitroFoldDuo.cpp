@@ -28,7 +28,7 @@ public:
     }
 
     void updateGlassCapsule(int64_t, NitroCppBuffer, NitroCppBuffer, int64_t,
-                            int64_t, bool) override {}
+                            int64_t, double, bool) override {}
 
     void updateGlassSurface(int64_t, double, int64_t, bool) override {}
 

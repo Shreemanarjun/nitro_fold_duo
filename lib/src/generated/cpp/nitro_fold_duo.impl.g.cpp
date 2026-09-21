@@ -48,7 +48,7 @@ public:
         // return { nullptr, 0 };
     }
 
-    void updateGlassCapsule(int64_t viewId, NitroCppBuffer symbols, NitroCppBuffer titles, int64_t selectedIndex, int64_t tint, bool isDark) override {
+    void updateGlassCapsule(int64_t viewId, NitroCppBuffer symbols, NitroCppBuffer titles, int64_t selectedIndex, int64_t tint, double symbolPointSize, bool isDark) override {
         // TODO: implement updateGlassCapsule
         throw std::runtime_error("Not implemented: updateGlassCapsule");
     }

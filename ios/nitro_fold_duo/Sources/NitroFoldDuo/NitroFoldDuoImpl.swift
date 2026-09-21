@@ -31,13 +31,14 @@ public class NitroFoldDuoImpl: NSObject, HybridNitroFoldDuoProtocol {
 
     public func updateGlassCapsule(
         viewId: Int64, symbols: [String], titles: [String], selectedIndex: Int64,
-        tint: Int64, isDark: Bool
+        tint: Int64, symbolPointSize: Double, isDark: Bool
     ) {
         // Called from Dart's UI isolate; UIKit is main-thread only.
         Task { @MainActor in
             DuoGlassCapsuleRegistry.apply(
                 id: viewId, symbols: symbols, titles: titles,
-                selectedIndex: Int(selectedIndex), tint: Int(tint), isDark: isDark)
+                selectedIndex: Int(selectedIndex), tint: Int(tint),
+                symbolPointSize: symbolPointSize, isDark: isDark)
         }
     }
 

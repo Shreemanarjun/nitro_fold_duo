@@ -38,6 +38,10 @@ class DuoGlassSurface extends StatefulWidget {
 class _DuoGlassSurfaceState extends State<DuoGlassSurface> {
   int? _viewId;
 
+  /// The last shape handed to the native side, so a rebuild that changes
+  /// nothing does not cross the bridge again.
+  ({double radius, int tint, bool dark})? _pushed;
+
   void _attach(int id) {
     _viewId = id;
     _push();
@@ -47,12 +51,16 @@ class _DuoGlassSurfaceState extends State<DuoGlassSurface> {
     final id = _viewId;
     final duo = duoBridge;
     if (id == null || duo == null) return;
-    duo.updateGlassSurface(
-      id,
-      widget.borderRadius,
-      widget.tint?.toARGB32() ?? 0,
-      MediaQuery.platformBrightnessOf(context) == Brightness.dark,
+
+    final next = (
+      radius: widget.borderRadius,
+      tint: widget.tint?.toARGB32() ?? 0,
+      dark: MediaQuery.platformBrightnessOf(context) == Brightness.dark,
     );
+    if (_pushed == next) return;
+    _pushed = next;
+
+    duo.updateGlassSurface(id, next.radius, next.tint, next.dark);
   }
 
   @override

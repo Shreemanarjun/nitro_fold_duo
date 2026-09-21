@@ -194,6 +194,7 @@ class NitroFoldDuoImpl : HybridNitroFoldDuoSpec {
         titles: List<String>,
         selectedIndex: Long,
         tint: Long,
+        symbolPointSize: Double,
         isDark: Boolean,
     ) = Unit
 

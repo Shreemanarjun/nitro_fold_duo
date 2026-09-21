@@ -121,6 +121,57 @@ void main() {
     });
   });
 
+  group('customisation', () {
+    testWidgets('DuoSplit can draw inside the reserved band', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      debugSetDuoState(
+        duo(regions: [division(const Rect.fromLTWH(0, 380, 400, 40))]),
+      );
+
+      await tester.pumpWidget(
+        host(
+          size: const Size(400, 800),
+          child: DuoSplit(
+            primary: const ColoredBox(key: _primary, color: Color(0xFF000000)),
+            secondary: const ColoredBox(
+              key: _secondary,
+              color: Color(0xFFFFFFFF),
+            ),
+            band: const ColoredBox(key: Key('band'), color: Color(0xFFFF0000)),
+          ),
+        ),
+      );
+
+      // The band fills the crease the panes leave empty.
+      expect(tester.getSize(find.byKey(const Key('band'))).height, 40);
+      expect(tester.getTopLeft(find.byKey(const Key('band'))).dy, 380);
+    });
+
+    testWidgets('DuoOcclusionSafeArea honours a minimum', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      // A camera on the right worth 84, and a floor of 20 everywhere.
+      debugSetDuoState(
+        duo(regions: [occlusion(const Rect.fromLTWH(316, 0, 84, 170))]),
+      );
+
+      await tester.pumpWidget(
+        host(
+          size: const Size(400, 800),
+          child: const DuoOcclusionSafeArea(
+            minimum: EdgeInsets.all(20),
+            child: ColoredBox(key: _child, color: Color(0xFF000000)),
+          ),
+        ),
+      );
+
+      // Right takes the camera's 84; the other edges take the floor.
+      expect(tester.getSize(find.byKey(_child)).width, 400 - 84 - 20);
+      expect(tester.getTopLeft(find.byKey(_child)), const Offset(20, 20));
+    });
+  });
+
   group('DuoOcclusionSafeArea', () {
     testWidgets('clears an occlusion from the cheapest edge', (tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 800));

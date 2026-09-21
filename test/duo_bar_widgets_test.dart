@@ -34,6 +34,32 @@ void main() {
       expect(style.copyWith(), style);
     });
 
+    test('every visual knob survives copyWith and compares by value', () {
+      const style = DuoBarStyle();
+      final tuned = style.copyWith(
+        symbolPointSize: 22,
+        titlePadding: const EdgeInsetsDirectional.only(start: 32),
+        titleBackdropRadius: 16,
+        compression: DuoBarCompression.prefersBarItems,
+      );
+
+      expect(tuned.symbolPointSize, 22);
+      expect(tuned.titlePadding, const EdgeInsetsDirectional.only(start: 32));
+      expect(tuned.titleBackdropRadius, 16);
+      expect(tuned.compression, DuoBarCompression.prefersBarItems);
+      expect(tuned, isNot(style));
+      expect(tuned, style.copyWith(
+        symbolPointSize: 22,
+        titlePadding: const EdgeInsetsDirectional.only(start: 32),
+        titleBackdropRadius: 16,
+        compression: DuoBarCompression.prefersBarItems,
+      ));
+
+      // Defaults match what the system draws.
+      expect(style.symbolPointSize, kDuoBarSymbolPointSize);
+      expect(style.titleBackdropRadius, 0);
+    });
+
     test('values compare by their fields', () {
       const a = DuoBarStyle(capsuleWidth: 50, tint: Color(0xFF00FF00));
       const b = DuoBarStyle(capsuleWidth: 50, tint: Color(0xFF00FF00));
@@ -496,6 +522,78 @@ void main() {
       await tester.pump();
 
       expect(pressed, ['b']);
+    });
+  });
+
+  group('DuoBarScaffold customisation', () {
+    testWidgets('the style places and shapes the title', (tester) async {
+      await tester.binding.setSurfaceSize(duoInnerSize);
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      debugSetDuoState(duo());
+
+      await tester.pumpWidget(
+        host(
+          child: const DuoBarScaffold(
+            title: Text('Library'),
+            body: SizedBox.expand(),
+            style: DuoBarStyle(
+              titlePadding: EdgeInsetsDirectional.only(start: 40),
+              titleBackdropRadius: 12,
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.getTopLeft(find.text('Library')).dx, 40);
+      expect(
+        tester.widget<DuoGlassSurface>(find.byType(DuoGlassSurface))
+            .borderRadius,
+        12,
+      );
+    });
+
+    testWidgets('titleBackdrop: false drops the material', (tester) async {
+      await tester.binding.setSurfaceSize(duoInnerSize);
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      debugSetDuoState(duo());
+
+      await tester.pumpWidget(
+        host(
+          child: const DuoBarScaffold(
+            title: Text('Library'),
+            body: SizedBox.expand(),
+            titleBackdrop: false,
+          ),
+        ),
+      );
+
+      expect(find.byType(DuoGlassSurface), findsNothing);
+      expect(find.text('Library'), findsOneWidget);
+    });
+
+    testWidgets('the symbol size reaches the capsules', (tester) async {
+      await tester.binding.setSurfaceSize(duoCoverSize);
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        host(
+          size: duoCoverSize,
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: DuoVerticalBar(
+              state: _coverPose(),
+              actions: _actions(1),
+              style: const DuoBarStyle(symbolPointSize: 24),
+            ),
+          ),
+        ),
+      );
+
+      expect(
+        tester.widget<DuoGlassCapsule>(find.byType(DuoGlassCapsule).first)
+            .symbolPointSize,
+        24,
+      );
     });
   });
 

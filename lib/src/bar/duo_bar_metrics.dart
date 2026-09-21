@@ -35,6 +35,9 @@ const double kDuoBarItemHeight = 44.0;
 /// of beside it.
 const double kDuoTitleBandHeight = 70.0;
 
+/// Point size the system draws a bar symbol at.
+const double kDuoBarSymbolPointSize = 17.0;
+
 /// SF Symbol the system uses for an overflow menu.
 const String kDuoOverflowSymbol = 'ellipsis';
 

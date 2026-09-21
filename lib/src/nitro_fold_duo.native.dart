@@ -163,7 +163,8 @@ abstract class NitroFoldDuo extends HybridObject {
   /// buttons' accessibility labels — icon-only controls have nothing else to
   /// announce — and an empty entry leaves the label iOS derives from the SF
   /// Symbol. [selectedIndex] is negative for no selection, and [tint] is ARGB
-  /// with 0 meaning the system label colour.
+  /// with 0 meaning the system label colour. [symbolPointSize] sizes the SF
+  /// Symbols, so icons can follow a capsule that was made wider or narrower.
   ///
   /// A leaf call: the native side only hands the values to the main thread and
   /// returns, so it never throws, blocks, or calls back into Dart.
@@ -174,6 +175,7 @@ abstract class NitroFoldDuo extends HybridObject {
     List<String> titles,
     int selectedIndex,
     int tint,
+    double symbolPointSize,
     bool isDark,
   );
 

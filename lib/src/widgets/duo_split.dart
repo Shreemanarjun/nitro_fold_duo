@@ -21,10 +21,15 @@ class DuoSplit extends StatefulWidget {
     required this.primary,
     required this.secondary,
     this.fallbackAxis = Axis.vertical,
+    this.band,
   });
 
   final Widget primary;
   final Widget secondary;
+
+  /// Drawn inside the reserved band itself. Empty by default — the system
+  /// leaves the crease alone — but a seam or shadow can go here.
+  final Widget? band;
 
   /// How the two children share the box when no division applies.
   final Axis fallbackAxis;
@@ -56,7 +61,7 @@ class _DuoSplitState extends State<DuoSplit> with DuoLocalOrigin {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       SizedBox(height: split.band.top, child: widget.primary),
-                      SizedBox(height: split.band.height),
+                      SizedBox(height: split.band.height, child: widget.band),
                       Expanded(child: widget.secondary),
                     ],
                   )
@@ -64,7 +69,7 @@ class _DuoSplitState extends State<DuoSplit> with DuoLocalOrigin {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       SizedBox(width: split.band.left, child: widget.primary),
-                      SizedBox(width: split.band.width),
+                      SizedBox(width: split.band.width, child: widget.band),
                       Expanded(child: widget.secondary),
                     ],
                   );

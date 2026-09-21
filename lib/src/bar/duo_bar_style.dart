@@ -42,6 +42,9 @@ class DuoBarStyle {
     this.overflowSymbol = kDuoOverflowSymbol,
     this.overflowTitle = 'More',
     this.compression = DuoBarCompression.automatic,
+    this.symbolPointSize = kDuoBarSymbolPointSize,
+    this.titlePadding = const EdgeInsetsDirectional.only(start: 20),
+    this.titleBackdropRadius = 0,
     this.stripWidth,
     this.tint,
   });
@@ -70,6 +73,17 @@ class DuoBarStyle {
   /// What gives way when the strip runs out of room.
   final DuoBarCompression compression;
 
+  /// Point size of the SF Symbols in a capsule. Raise it with
+  /// [capsuleWidth] so the icons keep their proportion.
+  final double symbolPointSize;
+
+  /// Insets the leading-edge title inside its band.
+  final EdgeInsetsGeometry titlePadding;
+
+  /// Corner radius of the material behind the title. Square by default, as the
+  /// system's own band is.
+  final double titleBackdropRadius;
+
   /// Overrides the strip width the system reserves. Leave null to follow the
   /// window's own inset, which is what the system bar uses.
   final double? stripWidth;
@@ -89,6 +103,9 @@ class DuoBarStyle {
     String? overflowSymbol,
     String? overflowTitle,
     DuoBarCompression? compression,
+    double? symbolPointSize,
+    EdgeInsetsGeometry? titlePadding,
+    double? titleBackdropRadius,
     double? stripWidth,
     Color? tint,
   }) => DuoBarStyle(
@@ -100,6 +117,9 @@ class DuoBarStyle {
     overflowSymbol: overflowSymbol ?? this.overflowSymbol,
     overflowTitle: overflowTitle ?? this.overflowTitle,
     compression: compression ?? this.compression,
+    symbolPointSize: symbolPointSize ?? this.symbolPointSize,
+    titlePadding: titlePadding ?? this.titlePadding,
+    titleBackdropRadius: titleBackdropRadius ?? this.titleBackdropRadius,
     stripWidth: stripWidth ?? this.stripWidth,
     tint: tint ?? this.tint,
   );
@@ -115,6 +135,9 @@ class DuoBarStyle {
       other.overflowSymbol == overflowSymbol &&
       other.overflowTitle == overflowTitle &&
       other.compression == compression &&
+      other.symbolPointSize == symbolPointSize &&
+      other.titlePadding == titlePadding &&
+      other.titleBackdropRadius == titleBackdropRadius &&
       other.stripWidth == stripWidth &&
       other.tint == tint;
 
@@ -128,6 +151,9 @@ class DuoBarStyle {
     overflowSymbol,
     overflowTitle,
     compression,
+    symbolPointSize,
+    titlePadding,
+    titleBackdropRadius,
     stripWidth,
     tint,
   );

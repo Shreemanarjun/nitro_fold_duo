@@ -16,7 +16,8 @@ class FakeDuoBridge implements NitroFoldDuo {
   final _states = StreamController<DuoState>.broadcast();
   final _presses = StreamController<DuoBarPress>.broadcast();
 
-  final capsuleUpdates = <({int viewId, List<String> symbols, int selected})>[];
+  final capsuleUpdates =
+      <({int viewId, List<String> symbols, int selected, double size})>[];
   final surfaceUpdates = <({int viewId, double radius, int tint})>[];
   final menuUpdates = <({int viewId, int button, List<String> titles})>[];
 
@@ -43,11 +44,13 @@ class FakeDuoBridge implements NitroFoldDuo {
     List<String> titles,
     int selectedIndex,
     int tint,
+    double symbolPointSize,
     bool isDark,
   ) => capsuleUpdates.add((
     viewId: viewId,
     symbols: symbols,
     selected: selectedIndex,
+    size: symbolPointSize,
   ));
 
   @override
@@ -215,6 +218,84 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(DuoGlassSurface), findsOneWidget);
+    }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+  });
+
+  group('bridge traffic', () {
+    testWidgets('a hinge tick does not re-push an unchanged bar', (
+      tester,
+    ) async {
+      final fake = FakeDuoBridge();
+      debugSetDuoBridge(fake);
+      _mockPlatformViews(tester);
+      await tester.binding.setSurfaceSize(duoInnerSize);
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      debugSetDuoState(duo(angle: 2.0));
+      await tester.pumpWidget(
+        host(
+          child: DuoBarScaffold(
+            body: const SizedBox.expand(),
+            actions: const [
+              DuoBarItem(symbol: 'a', title: 'A'),
+              DuoBarItem(symbol: 'b', title: 'B'),
+            ],
+            tabs: const [
+              DuoBarItem(symbol: 'c', title: 'C'),
+              DuoBarItem(symbol: 'd', title: 'D'),
+            ],
+            selectedTab: 0,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final afterFirstBuild = fake.capsuleUpdates.length;
+      expect(afterFirstBuild, greaterThan(0));
+
+      // The angle ticks while the device folds. Nothing about the bar changed,
+      // so nothing should cross the bridge.
+      for (final angle in [2.05, 2.1, 2.15, 2.2, 2.25]) {
+        debugSetDuoState(duo(angle: angle));
+        await tester.pumpAndSettle();
+      }
+
+      expect(fake.capsuleUpdates.length, afterFirstBuild);
+      expect(duoState.value.hingeAngle, 2.25);
+    }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+
+    testWidgets('a real change still crosses', (tester) async {
+      final fake = FakeDuoBridge();
+      debugSetDuoBridge(fake);
+      _mockPlatformViews(tester);
+
+      Widget capsule(int? selected) => host(
+        child: Center(
+          child: SizedBox(
+            width: 44,
+            height: 88,
+            child: DuoGlassCapsule(
+              items: const [DuoBarItem(symbol: 'a'), DuoBarItem(symbol: 'b')],
+              selectedIndex: selected,
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(capsule(0));
+      await tester.pumpAndSettle();
+      final pushes = fake.capsuleUpdates.length;
+
+      // Same contents, same selection: no traffic.
+      await tester.pumpWidget(capsule(0));
+      await tester.pumpAndSettle();
+      expect(fake.capsuleUpdates.length, pushes);
+
+      // Selection moved: one push.
+      await tester.pumpWidget(capsule(1));
+      await tester.pumpAndSettle();
+      expect(fake.capsuleUpdates.length, pushes + 1);
+      expect(fake.capsuleUpdates.last.selected, 1);
     }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
   });
 

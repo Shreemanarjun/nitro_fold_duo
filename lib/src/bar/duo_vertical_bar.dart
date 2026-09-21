@@ -110,6 +110,7 @@ class DuoVerticalBar extends StatelessWidget {
           items: items,
           selectedIndex: selected,
           tint: style.tint ?? tint,
+          symbolPointSize: style.symbolPointSize,
         ),
       );
 

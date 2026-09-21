@@ -23,11 +23,11 @@ enum DuoGlassCapsuleRegistry {
 
     static func apply(
         id: Int64, symbols: [String], titles: [String], selectedIndex: Int, tint: Int,
-        isDark: Bool
+        symbolPointSize: Double, isDark: Bool
     ) {
         views[id]?.apply(
             symbols: symbols, titles: titles, selectedIndex: selectedIndex, tint: tint,
-            isDark: isDark)
+            symbolPointSize: symbolPointSize, isDark: isDark)
     }
 
     static func setMenu(
@@ -76,6 +76,7 @@ final class DuoGlassCapsuleView: NSObject, FlutterPlatformView {
     private var buttons: [UIButton] = []
     private var selectedIndex: Int?
     private var tint: UIColor?
+    private var symbolPointSize: CGFloat = 17
 
     init(frame: CGRect, viewId: Int64) {
         self.viewId = viewId
@@ -131,13 +132,15 @@ final class DuoGlassCapsuleView: NSObject, FlutterPlatformView {
     @MainActor
     func apply(
         symbols next: [String], titles: [String], selectedIndex index: Int, tint argb: Int,
-        isDark: Bool
+        symbolPointSize size: Double, isDark: Bool
     ) {
         container.overrideUserInterfaceStyle = isDark ? .dark : .light
         tint = argb == 0 ? nil : Self.color(argb: argb)
         selectedIndex = index < 0 ? nil : index
 
-        if next != symbols {
+        let resized = CGFloat(size) != symbolPointSize
+        symbolPointSize = CGFloat(size)
+        if next != symbols || resized {
             symbols = next
             rebuildButtons()  // drops any menu with the old buttons
         }
@@ -159,7 +162,8 @@ final class DuoGlassCapsuleView: NSObject, FlutterPlatformView {
             button.setImage(
                 UIImage(
                     systemName: symbol,
-                    withConfiguration: UIImage.SymbolConfiguration(pointSize: 17, weight: .regular)),
+                    withConfiguration: UIImage.SymbolConfiguration(
+                        pointSize: symbolPointSize, weight: .regular)),
                 for: .normal)
             button.tag = index
             button.addTarget(self, action: #selector(pressed(_:)), for: .touchUpInside)
