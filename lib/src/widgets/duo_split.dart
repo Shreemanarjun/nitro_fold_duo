@@ -20,7 +20,7 @@ class DuoSplit extends StatefulWidget {
     super.key,
     required this.primary,
     required this.secondary,
-    this.fallbackAxis = Axis.vertical,
+    this.fallbackAxis,
     this.band,
   });
 
@@ -32,7 +32,11 @@ class DuoSplit extends StatefulWidget {
   final Widget? band;
 
   /// How the two children share the box when no division applies.
-  final Axis fallbackAxis;
+  ///
+  /// Null follows the box, as the system's split arrangement does: side by
+  /// side when it is wider than it is tall, stacked when it is taller than it
+  /// is wide. Set it to pin one axis.
+  final Axis? fallbackAxis;
 
   @override
   State<DuoSplit> createState() => _DuoSplitState();
@@ -55,7 +59,7 @@ class _DuoSplitState extends State<DuoSplit> with DuoLocalOrigin {
               constraints.biggest,
               origin: localOrigin,
             );
-            if (split == null) return _fallback();
+            if (split == null) return _fallback(constraints.biggest);
             return split.horizontal
                 ? Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -79,12 +83,15 @@ class _DuoSplitState extends State<DuoSplit> with DuoLocalOrigin {
     );
   }
 
-  Widget _fallback() {
+  Widget _fallback(Size size) {
     final children = [
       Expanded(child: widget.primary),
       Expanded(child: widget.secondary),
     ];
-    return switch (widget.fallbackAxis) {
+    final axis =
+        widget.fallbackAxis ??
+        (size.width > size.height ? Axis.horizontal : Axis.vertical);
+    return switch (axis) {
       Axis.vertical => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: children,

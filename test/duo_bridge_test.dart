@@ -10,7 +10,8 @@ import 'duo_test_support.dart';
 /// A stand-in for the native plugin, so everything that talks to the device
 /// can be driven without one.
 class FakeDuoBridge implements NitroFoldDuo {
-  FakeDuoBridge({DuoState? initial}) : _current = initial ?? duoStateUnavailable;
+  FakeDuoBridge({DuoState? initial})
+    : _current = initial ?? duoStateUnavailable;
 
   DuoState _current;
   final _states = StreamController<DuoState>.broadcast();
@@ -111,7 +112,6 @@ void main() {
       debugClearDuoBridge();
       expect(duoBridge, isNull);
     });
-
   });
 
   group('duoState against a bridge', () {
@@ -207,11 +207,7 @@ void main() {
       await tester.pumpWidget(
         host(
           child: const Center(
-            child: SizedBox(
-              width: 200,
-              height: 70,
-              child: DuoGlassSurface(),
-            ),
+            child: SizedBox(width: 200, height: 70, child: DuoGlassSurface()),
           ),
         ),
       );
@@ -275,7 +271,10 @@ void main() {
             width: 44,
             height: 88,
             child: DuoGlassCapsule(
-              items: const [DuoBarItem(symbol: 'a'), DuoBarItem(symbol: 'b')],
+              items: const [
+                DuoBarItem(symbol: 'a', title: 'a'),
+                DuoBarItem(symbol: 'b', title: 'b'),
+              ],
               selectedIndex: selected,
             ),
           ),
@@ -348,13 +347,15 @@ void main() {
             width: 44,
             height: 44,
             child: DuoGlassCapsule(
-              items: [DuoBarItem(symbol: 'a', menu: menu)],
+              items: [DuoBarItem(symbol: 'a', title: 'a', menu: menu)],
             ),
           ),
         ),
       );
 
-      await tester.pumpWidget(capsule(const [DuoBarItem(symbol: 'x')]));
+      await tester.pumpWidget(
+        capsule(const [DuoBarItem(symbol: 'x', title: 'x')]),
+      );
       await tester.pumpAndSettle();
       expect(fake.menuUpdates.last.titles, ['x']);
 
@@ -382,11 +383,16 @@ void main() {
                 items: [
                   DuoBarItem(
                     symbol: 'a',
+                    title: 'a',
                     onPressed: () => seen.add('press'),
                     menu: [
-                      const DuoBarItem(symbol: 'x'),
-                      const DuoBarItem(symbol: 'y'),
-                      DuoBarItem(symbol: 'z', onPressed: () => seen.add('menu')),
+                      const DuoBarItem(symbol: 'x', title: 'x'),
+                      const DuoBarItem(symbol: 'y', title: 'y'),
+                      DuoBarItem(
+                        symbol: 'z',
+                        title: 'z',
+                        onPressed: () => seen.add('menu'),
+                      ),
                     ],
                   ),
                 ],
@@ -421,7 +427,9 @@ void main() {
             child: SizedBox(
               width: 44,
               height: 44,
-              child: DuoGlassCapsule(items: [DuoBarItem(symbol: 'a')]),
+              child: DuoGlassCapsule(
+                items: [DuoBarItem(symbol: 'a', title: 'a')],
+              ),
             ),
           ),
         ),

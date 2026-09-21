@@ -17,8 +17,8 @@ SignalBuilder(
 )
 ```
 
-One import. `signals_flutter` is re-exported, so `SignalBuilder`, `signal` and
-`computed` come with it.
+`signals_flutter` is re-exported, so `SignalBuilder`, `signal` and `computed`
+come with that one import.
 
 ## Requirements
 
@@ -177,29 +177,35 @@ DuoBuilder(
 
 ### DuoSplit
 
-Places `primary` and `secondary` on opposite sides of an active fold, leaving
-the reserved band empty. With no fold crossing the box they share it along
-`fallbackAxis` — so this is the ordinary layout too, not something to swap in
-when the phone bends.
+Places `primary` and `secondary` on opposite sides of an active fold and
+leaves the reserved band empty. It is the layout in every pose, not a variant
+swapped in when the device bends.
 
 ```dart
 DuoSplit(
   primary: const ArticleList(),
   secondary: const ArticleDetail(),
-  fallbackAxis: Axis.horizontal,
-  // Optional: draw something in the crease itself.
-  band: const ColoredBox(color: Color(0x14000000)),
 )
 ```
 
-Keep continuously scrolling content out of it: a feed should stay stable
-through the curved region rather than jump to the other pane.
+With no fold crossing the box, the panes share it the way the system's split
+arrangement does: side by side when the box is wider than it is tall, stacked
+when it is taller than it is wide. Pass `fallbackAxis` to pin one axis.
+
+| Parameter | |
+|---|---|
+| `primary`, `secondary` | Required. Leading/top and trailing/bottom panes |
+| `fallbackAxis` | `Axis` to pin when no fold applies; null follows the box |
+| `band` | Drawn inside the reserved crease; nothing tappable belongs here |
+
+Give each pane its own scroller rather than running one across both. Do not
+nest a `DuoSplit` inside a scroll view or a navigation container.
 
 ### DuoOcclusionSafeArea
 
 Insets a child clear of whatever can obscure it — on Duo, the camera. Each
 region is cleared from the single cheapest edge it touches, so a corner camera
-does not cost you a whole band on two sides.
+costs one side rather than two.
 
 ```dart
 DuoOcclusionSafeArea(
@@ -277,6 +283,7 @@ DuoBarScaffold(
 | `actions` | Toolbar items, grouped into capsules |
 | `tabs`, `selectedTab` | Tab bar, drawn as one capsule at the bottom |
 | `horizontalChrome` | Your normal chrome, used where there is no strip |
+| `background` | Drawn behind everything, full width, under the strip |
 | `titleBackdrop` | System material behind `title`; `true` by default |
 | `tint`, `style` | See [Styling](#styling) |
 
@@ -285,13 +292,23 @@ every other iPhone — the strip does not exist and `horizontalChrome` draws you
 ordinary app bar and tab bar around `body` instead. Omit it and `body` is used
 bare.
 
-The strip is composed in Flutter. iOS only moves bars it manages itself —
-`navigationItem` groups under a `UINavigationController` — which a Flutter app
-does not have, so the layout, the ordering and the overflow rule are
-reimplemented here to match what the system does. The capsules, their buttons
-and the overflow menu are real UIKit; the system's own bar features are not
-reachable through them, so there is no `visibilityPriority`, badge,
-`axisBehavior` or `UIVerticalBarBehavior.disabled`.
+`background` is for a hero or header image, which the system lets run past the
+safe area and under the bar — `UIBackgroundExtensionView` in UIKit. `body`
+stays inset.
+
+```dart
+DuoBarScaffold(
+  background: const DecoratedBox(decoration: BoxDecoration(gradient: brand)),
+  body: body,
+)
+```
+
+The strip is composed in Flutter. iOS only moves bars it manages itself,
+meaning `navigationItem` groups under a `UINavigationController`, which a
+Flutter app does not have; the layout, ordering and overflow rule are
+reimplemented here to match. The capsules, their buttons and the overflow menu
+are real UIKit. Not implemented: `visibilityPriority`, badges, `axisBehavior`,
+`UIVerticalBarBehavior.disabled`.
 
 ### DuoBarItem
 
@@ -311,16 +328,18 @@ DuoBarItem(
 | Field | |
 |---|---|
 | `symbol` | Required. SF Symbol name, e.g. `square.and.arrow.up` |
-| `title` | Accessibility label, and the wording used inside a menu |
+| `title` | Required. Accessibility label, and the wording used in a menu |
 | `onPressed` | Unused when `menu` is non-empty — the button opens the menu |
 | `endsGroup` | Start a new capsule after this item |
 | `menu` | Entries behind this item in a real `UIMenu` |
 
-Items that do not fit the strip move into an overflow capsule with a real
-`UIMenu`, as the system does. Room for that capsule is taken out of the budget
-first, so a bar never overflows by exactly one item.
+Both are required because the system needs both: the symbol for a vertical
+presentation, the title for a menu or an expanded form.
 
-Always set `title`. An icon announces nothing on its own.
+Items that do not fit the strip move into an overflow capsule with a real
+`UIMenu`. Room for that capsule is taken out of the budget first, so a bar
+never overflows by exactly one item. Groups stay whole and in order, and the
+bottom-most group overflows first.
 
 ### DuoVerticalBar
 
@@ -428,9 +447,9 @@ DuoBarScaffold(
 | `automatic`, `prefersTabBar` | Tab bar stays whole; toolbar items overflow |
 | `prefersBarItems` | Toolbar keeps the strip; tab bar collapses to one button with a menu |
 
-Other widgets take their own overrides: `DuoSplit.band` draws inside the
-reserved crease, `DuoOcclusionSafeArea.minimum` sets a floor under the computed
-insets, and `DuoGlassSurface` takes `borderRadius` and `tint`.
+Other widgets take their own overrides: `DuoSplit.band` and
+`DuoSplit.fallbackAxis`, `DuoOcclusionSafeArea.minimum`, and
+`DuoGlassSurface.borderRadius` / `.tint`.
 
 ## Layout helpers
 
@@ -471,7 +490,7 @@ not at the view's top-left. `DuoState` also carries `activeDivision`,
 ## Testing
 
 ```sh
-flutter test                 # 109 tests, 100% line coverage
+flutter test                 # 111 tests, 100% line coverage
 ```
 
 Stage device state without hardware:
@@ -530,10 +549,10 @@ angles, flat, and the round trip.
 ### Native controls
 
 The bar's buttons are UIKit inside a platform view. XCUITest cannot deliver
-touches to them — by accessibility element or raw coordinate alike, the tap
-reports success and nothing happens — so the four Patrol tests that press them
-are `skip: true` and the bar is verified by hand. Two Patrol tests covering the
-Flutter path do run:
+touches to them: by accessibility element and by raw coordinate alike, the tap
+reports success and nothing happens. The four Patrol tests that press them are
+`skip: true`, and the bar is verified by hand. Two tests covering the Flutter
+path run:
 
 ```sh
 cd example
@@ -559,6 +578,11 @@ nitrogen link       # wire them into the native build systems
 `nitrogen link` copies hand-written Swift from `ios/Classes/` into the SPM
 sources only when missing. After editing one of those files, delete the copy
 under `ios/nitro_fold_duo/Sources/NitroFoldDuo/` and run `nitrogen link` again.
+
+## Reference
+
+- [Designing for iPhone Duo](https://developer.apple.com/design/human-interface-guidelines/designing-for-iphone-duo) — HIG
+- [Preparing your app for iPhone Duo](https://developer.apple.com/documentation/technologyoverviews/preparing-your-app-for-iphone-duo) — technology overview
 
 ## Licence
 

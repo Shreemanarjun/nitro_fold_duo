@@ -48,12 +48,15 @@ void main() {
       expect(tuned.titleBackdropRadius, 16);
       expect(tuned.compression, DuoBarCompression.prefersBarItems);
       expect(tuned, isNot(style));
-      expect(tuned, style.copyWith(
-        symbolPointSize: 22,
-        titlePadding: const EdgeInsetsDirectional.only(start: 32),
-        titleBackdropRadius: 16,
-        compression: DuoBarCompression.prefersBarItems,
-      ));
+      expect(
+        tuned,
+        style.copyWith(
+          symbolPointSize: 22,
+          titlePadding: const EdgeInsetsDirectional.only(start: 32),
+          titleBackdropRadius: 16,
+          compression: DuoBarCompression.prefersBarItems,
+        ),
+      );
 
       // Defaults match what the system draws.
       expect(style.symbolPointSize, kDuoBarSymbolPointSize);
@@ -142,7 +145,10 @@ void main() {
               width: 44,
               height: 88,
               child: DuoGlassCapsule(
-                items: [DuoBarItem(symbol: 'a'), DuoBarItem(symbol: 'b')],
+                items: [
+                  DuoBarItem(symbol: 'a', title: 'a'),
+                  DuoBarItem(symbol: 'b', title: 'b'),
+                ],
               ),
             ),
           ),
@@ -163,8 +169,16 @@ void main() {
               height: 88,
               child: DuoGlassCapsule(
                 items: [
-                  DuoBarItem(symbol: 'a', onPressed: () => pressed.add((0, -1))),
-                  DuoBarItem(symbol: 'b', onPressed: () => pressed.add((1, -1))),
+                  DuoBarItem(
+                    symbol: 'a',
+                    title: 'a',
+                    onPressed: () => pressed.add((0, -1)),
+                  ),
+                  DuoBarItem(
+                    symbol: 'b',
+                    title: 'b',
+                    onPressed: () => pressed.add((1, -1)),
+                  ),
                 ],
               ),
             ),
@@ -187,7 +201,7 @@ void main() {
             width: 44,
             height: 44.0 * symbols.length,
             child: DuoGlassCapsule(
-              items: [for (final s in symbols) DuoBarItem(symbol: s)],
+              items: [for (final s in symbols) DuoBarItem(symbol: s, title: s)],
               selectedIndex: 0,
             ),
           ),
@@ -215,11 +229,17 @@ void main() {
             alignment: Alignment.centerRight,
             child: DuoVerticalBar(
               state: _coverPose(),
-              leading: const DuoBarItem(symbol: 'chevron.backward'),
+              leading: const DuoBarItem(
+                symbol: 'chevron.backward',
+                title: 'chevron.backward',
+              ),
               actions: _actions(2),
               tabs: const [
-                DuoBarItem(symbol: 'info.circle'),
-                DuoBarItem(symbol: 'square.split.2x1'),
+                DuoBarItem(symbol: 'info.circle', title: 'info.circle'),
+                DuoBarItem(
+                  symbol: 'square.split.2x1',
+                  title: 'square.split.2x1',
+                ),
               ],
               selectedTab: 0,
             ),
@@ -305,41 +325,45 @@ void main() {
     /// Enough actions that the strip cannot hold them all.
     List<DuoBarItem> crowded() => _actions(12);
 
-    testWidgets('by default the toolbar overflows and the tab bar stays whole', (
-      tester,
-    ) async {
-      await tester.binding.setSurfaceSize(duoCoverSize);
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+    testWidgets(
+      'by default the toolbar overflows and the tab bar stays whole',
+      (tester) async {
+        await tester.binding.setSurfaceSize(duoCoverSize);
+        addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      await tester.pumpWidget(
-        host(
-          size: duoCoverSize,
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: DuoVerticalBar(
-              state: _coverPose(),
-              actions: crowded(),
-              tabs: const [
-                DuoBarItem(symbol: 'one'),
-                DuoBarItem(symbol: 'two'),
-                DuoBarItem(symbol: 'three'),
-              ],
-              selectedTab: 1,
+        await tester.pumpWidget(
+          host(
+            size: duoCoverSize,
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: DuoVerticalBar(
+                state: _coverPose(),
+                actions: crowded(),
+                tabs: const [
+                  DuoBarItem(symbol: 'one', title: 'one'),
+                  DuoBarItem(symbol: 'two', title: 'two'),
+                  DuoBarItem(symbol: 'three', title: 'three'),
+                ],
+                selectedTab: 1,
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      final capsules = tester
-          .widgetList<DuoGlassCapsule>(find.byType(DuoGlassCapsule))
-          .toList();
-      // The tab capsule keeps all three tabs, and something overflowed.
-      expect([for (final i in capsules.last.items) i.symbol], ['one', 'two', 'three']);
-      expect(
-        capsules.any((c) => c.items.single.symbol == kDuoOverflowSymbol),
-        isTrue,
-      );
-    });
+        final capsules = tester
+            .widgetList<DuoGlassCapsule>(find.byType(DuoGlassCapsule))
+            .toList();
+        // The tab capsule keeps all three tabs, and something overflowed.
+        expect(
+          [for (final i in capsules.last.items) i.symbol],
+          ['one', 'two', 'three'],
+        );
+        expect(
+          capsules.any((c) => c.items.single.symbol == kDuoOverflowSymbol),
+          isTrue,
+        );
+      },
+    );
 
     testWidgets('prefersBarItems collapses the tab bar into one button', (
       tester,
@@ -392,8 +416,8 @@ void main() {
               state: _coverPose(),
               actions: _actions(1),
               tabs: const [
-                DuoBarItem(symbol: 'one'),
-                DuoBarItem(symbol: 'two'),
+                DuoBarItem(symbol: 'one', title: 'one'),
+                DuoBarItem(symbol: 'two', title: 'two'),
               ],
               selectedTab: 0,
               style: const DuoBarStyle(
@@ -488,7 +512,9 @@ void main() {
           ),
       ]);
 
-      final overflow = capsules.firstWhere((c) => c.items.single.menu.isNotEmpty);
+      final overflow = capsules.firstWhere(
+        (c) => c.items.single.menu.isNotEmpty,
+      );
       final entries = overflow.items.single.menu;
 
       entries[1].onPressed!();
@@ -508,8 +534,16 @@ void main() {
               height: 88,
               child: DuoGlassCapsule(
                 items: [
-                  DuoBarItem(symbol: 'a', onPressed: () => pressed.add('a')),
-                  DuoBarItem(symbol: 'b', onPressed: () => pressed.add('b')),
+                  DuoBarItem(
+                    symbol: 'a',
+                    title: 'a',
+                    onPressed: () => pressed.add('a'),
+                  ),
+                  DuoBarItem(
+                    symbol: 'b',
+                    title: 'b',
+                    onPressed: () => pressed.add('b'),
+                  ),
                 ],
               ),
             ),
@@ -546,7 +580,8 @@ void main() {
 
       expect(tester.getTopLeft(find.text('Library')).dx, 40);
       expect(
-        tester.widget<DuoGlassSurface>(find.byType(DuoGlassSurface))
+        tester
+            .widget<DuoGlassSurface>(find.byType(DuoGlassSurface))
             .borderRadius,
         12,
       );
@@ -590,7 +625,8 @@ void main() {
       );
 
       expect(
-        tester.widget<DuoGlassCapsule>(find.byType(DuoGlassCapsule).first)
+        tester
+            .widget<DuoGlassCapsule>(find.byType(DuoGlassCapsule).first)
             .symbolPointSize,
         24,
       );

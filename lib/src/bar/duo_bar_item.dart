@@ -2,7 +2,7 @@
 class DuoBarItem {
   const DuoBarItem({
     required this.symbol,
-    this.title,
+    required this.title,
     this.onPressed,
     this.endsGroup = false,
     this.menu = const <DuoBarItem>[],
@@ -11,9 +11,10 @@ class DuoBarItem {
   /// SF Symbol name, e.g. `chevron.backward` or `square.and.arrow.up`.
   final String symbol;
 
-  /// Accessibility label, and the wording used when this item appears in a
-  /// menu. An icon announces nothing on its own, so give every item one.
-  final String? title;
+  /// Accessibility label, and the wording the system shows for this item in a
+  /// menu or an expanded form. Required: an icon announces nothing on its own,
+  /// and a bar item without a title has nothing to fall back to.
+  final String title;
 
   final void Function()? onPressed;
 
@@ -25,9 +26,6 @@ class DuoBarItem {
   /// it rather than reporting a press, so [onPressed] is unused when this is
   /// not empty.
   final List<DuoBarItem> menu;
-
-  /// What a menu shows for this item.
-  String get menuTitle => title ?? symbol;
 
   DuoBarItem copyWith({List<DuoBarItem>? menu}) => DuoBarItem(
     symbol: symbol,

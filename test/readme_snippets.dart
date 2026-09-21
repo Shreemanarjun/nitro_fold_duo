@@ -33,6 +33,7 @@ const body = SizedBox();
 const myTabBar = SizedBox();
 const tab = 0;
 const items = <DuoBarItem>[];
+const brand = LinearGradient(colors: [Color(0xFF6750A4), Color(0xFF03DAC6)]);
 const actions = <DuoBarItem>[];
 const tabs = <DuoBarItem>[];
 
@@ -94,12 +95,8 @@ Widget _builder() => DuoBuilder(
       Text(state.isSupported ? state.hingeStatus.name : 'not a foldable'),
 );
 
-Widget _split() => DuoSplit(
-  primary: const ArticleList(),
-  secondary: const ArticleDetail(),
-  fallbackAxis: Axis.horizontal,
-  band: const ColoredBox(color: Color(0x14000000)),
-);
+Widget _split() =>
+    DuoSplit(primary: const ArticleList(), secondary: const ArticleDetail());
 
 Widget _occlusion() => DuoOcclusionSafeArea(
   minimum: const EdgeInsets.all(8),
@@ -183,6 +180,11 @@ Widget _capsule() => SizedBox(
     tint: const Color(0xFF6750A4),
     symbolPointSize: 20,
   ),
+);
+
+Widget _background() => DuoBarScaffold(
+  background: const DecoratedBox(decoration: BoxDecoration(gradient: brand)),
+  body: body,
 );
 
 Widget _surface() => DuoGlassSurface(

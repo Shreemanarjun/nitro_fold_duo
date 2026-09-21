@@ -2,18 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nitro_fold_duo/nitro_fold_duo.dart';
 
-DuoReservedRegion _occlusion(Rect r, {bool isActive = true}) => DuoReservedRegion(
-  kind: DuoRegionKind.occlusion,
-  left: r.left,
-  top: r.top,
-  width: r.width,
-  height: r.height,
-  marginLeft: 0,
-  marginTop: 0,
-  marginRight: 0,
-  marginBottom: 0,
-  isActive: isActive,
-);
+DuoReservedRegion _occlusion(Rect r, {bool isActive = true}) =>
+    DuoReservedRegion(
+      kind: DuoRegionKind.occlusion,
+      left: r.left,
+      top: r.top,
+      width: r.width,
+      height: r.height,
+      marginLeft: 0,
+      marginTop: 0,
+      marginRight: 0,
+      marginBottom: 0,
+      isActive: isActive,
+    );
 
 DuoState _state({
   List<DuoReservedRegion> regions = const [],
@@ -37,7 +38,11 @@ Widget _host({
   Size size = _duoSize,
   EdgeInsets viewPadding = _duoViewPadding,
 }) => MediaQuery(
-  data: MediaQueryData(size: size, viewPadding: viewPadding, padding: viewPadding),
+  data: MediaQueryData(
+    size: size,
+    viewPadding: viewPadding,
+    padding: viewPadding,
+  ),
   child: Directionality(textDirection: TextDirection.ltr, child: child),
 );
 
@@ -61,7 +66,9 @@ void main() {
 
     test('insets on both sides are an ordinary phone in landscape', () {
       expect(
-        DuoLayout.barSide(const EdgeInsets.only(left: 59, right: 59, bottom: 21)),
+        DuoLayout.barSide(
+          const EdgeInsets.only(left: 59, right: 59, bottom: 21),
+        ),
         isNull,
       );
     });
@@ -82,7 +89,10 @@ void main() {
       expect(
         DuoLayout.barSide(
           _duoViewPadding,
-          state: _state(edge: DuoVerticalBarEdge.unspecified, isSupported: false),
+          state: _state(
+            edge: DuoVerticalBarEdge.unspecified,
+            isSupported: false,
+          ),
         ),
         DuoBarSide.right,
       );
@@ -109,13 +119,17 @@ void main() {
 
     test('clears a camera at the top of the strip', () {
       // The occlusion measured on the device: 867,0 84x120.
-      final insets = insetsFor([_occlusion(const Rect.fromLTWH(867, 0, 84, 120))]);
+      final insets = insetsFor([
+        _occlusion(const Rect.fromLTWH(867, 0, 84, 120)),
+      ]);
       expect(insets.top, 120);
       expect(insets.bottom, kDuoBarEdgeMargin);
     });
 
     test('clears a camera at the bottom of the strip', () {
-      final insets = insetsFor([_occlusion(const Rect.fromLTWH(867, 549, 84, 120))]);
+      final insets = insetsFor([
+        _occlusion(const Rect.fromLTWH(867, 549, 84, 120)),
+      ]);
       expect(insets.top, kDuoBarEdgeMargin);
       expect(insets.bottom, 669 - 549 + kDuoBarRegionGap);
     });
@@ -129,14 +143,19 @@ void main() {
       expect(insets.bottom, 669 - 500 + kDuoBarRegionGap);
     });
 
-    test('an empty strip means nothing has been reported for this pose yet', () {
-      expect(insetsFor([]).top, kDuoStatusClusterFallbackHeight);
-    });
+    test(
+      'an empty strip means nothing has been reported for this pose yet',
+      () {
+        expect(insetsFor([]).top, kDuoStatusClusterFallbackHeight);
+      },
+    );
 
     test('a region outside the strip does not push the controls', () {
       // Sits on the page body, not in the strip.
-      expect(insetsFor([_occlusion(const Rect.fromLTWH(0, 0, 80, 80))]).top,
-          kDuoStatusClusterFallbackHeight);
+      expect(
+        insetsFor([_occlusion(const Rect.fromLTWH(0, 0, 80, 80))]).top,
+        kDuoStatusClusterFallbackHeight,
+      );
     });
 
     test('a reading left over from another pose is discarded', () {
@@ -160,9 +179,9 @@ void main() {
   group('DuoVerticalBar.groupsOf', () {
     test('consecutive actions share a capsule until one ends the group', () {
       final groups = DuoVerticalBar.groupsOf(const [
-        DuoBarItem(symbol: 'a'),
-        DuoBarItem(symbol: 'b', endsGroup: true),
-        DuoBarItem(symbol: 'c'),
+        DuoBarItem(symbol: 'a', title: 'a'),
+        DuoBarItem(symbol: 'b', title: 'b', endsGroup: true),
+        DuoBarItem(symbol: 'c', title: 'c'),
       ]);
       expect(groups.map((g) => g.map((i) => i.symbol).toList()), [
         ['a', 'b'],
@@ -178,14 +197,18 @@ void main() {
   group('duoBarOverflow', () {
     // One capsule costs 44 per button plus a 12 gap: 56 for one, 100 for two.
     const groups = [
-      [DuoBarItem(symbol: 'a'), DuoBarItem(symbol: 'b')],
-      [DuoBarItem(symbol: 'c')],
-      [DuoBarItem(symbol: 'd')],
+      [
+        DuoBarItem(symbol: 'a', title: 'a'),
+        DuoBarItem(symbol: 'b', title: 'b'),
+      ],
+      [DuoBarItem(symbol: 'c', title: 'c')],
+      [DuoBarItem(symbol: 'd', title: 'd')],
     ];
     const total = 100.0 + 56 + 56;
 
-    List<String> symbolsOf(List<DuoBarItem> items) =>
-        [for (final item in items) item.symbol];
+    List<String> symbolsOf(List<DuoBarItem> items) => [
+      for (final item in items) item.symbol,
+    ];
 
     test('nothing overflows when everything fits exactly', () {
       final fitted = duoBarOverflow(groups: groups, available: total);
@@ -230,7 +253,7 @@ void main() {
         symbol: 'a',
         title: 'A',
         endsGroup: true,
-        menu: [DuoBarItem(symbol: 'x')],
+        menu: [DuoBarItem(symbol: 'x', title: 'x')],
       );
 
       final same = item.copyWith();
@@ -240,16 +263,14 @@ void main() {
       expect(same.menu, item.menu);
 
       expect(
-        item.copyWith(menu: const [DuoBarItem(symbol: 'y')]).menu.single.symbol,
+        item
+            .copyWith(
+              menu: const [DuoBarItem(symbol: 'y', title: 'y')],
+            )
+            .menu
+            .single
+            .symbol,
         'y',
-      );
-    });
-
-    test('the menu falls back to the symbol when no title is given', () {
-      expect(const DuoBarItem(symbol: 'gearshape').menuTitle, 'gearshape');
-      expect(
-        const DuoBarItem(symbol: 'gearshape', title: 'Settings').menuTitle,
-        'Settings',
       );
     });
   });
@@ -267,7 +288,9 @@ void main() {
         _host(
           child: DuoBarScaffold(
             body: const SizedBox.expand(child: Text('body')),
-            actions: const [DuoBarItem(symbol: 'gearshape')],
+            actions: const [
+              DuoBarItem(symbol: 'gearshape', title: 'gearshape'),
+            ],
             horizontalChrome: (context, body) =>
                 const Text('horizontal chrome'),
           ),
@@ -294,7 +317,9 @@ void main() {
           viewPadding: const EdgeInsets.only(top: 59, bottom: 34),
           child: DuoBarScaffold(
             body: const Text('body'),
-            actions: const [DuoBarItem(symbol: 'gearshape')],
+            actions: const [
+              DuoBarItem(symbol: 'gearshape', title: 'gearshape'),
+            ],
             horizontalChrome: (context, body) =>
                 const Text('horizontal chrome'),
           ),
@@ -303,6 +328,57 @@ void main() {
 
       expect(find.byType(DuoVerticalBar), findsNothing);
       expect(find.text('horizontal chrome'), findsOneWidget);
+    });
+
+    testWidgets('a background runs the full width, under the strip', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(_duoSize);
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        _host(
+          child: const DuoBarScaffold(
+            body: SizedBox.expand(child: Text('body')),
+            actions: [DuoBarItem(symbol: 'gearshape', title: 'gearshape')],
+            background: ColoredBox(
+              key: Key('background'),
+              color: Color(0xFF123456),
+            ),
+          ),
+        ),
+      );
+
+      // The body keeps clear of the strip; the background does not.
+      expect(tester.getSize(find.text('body')).width, 951 - 84);
+      expect(tester.getSize(find.byKey(const Key('background'))).width, 951);
+    });
+
+    testWidgets('the background is drawn behind horizontal chrome too', (
+      tester,
+    ) async {
+      const phone = Size(430, 932);
+      await tester.binding.setSurfaceSize(phone);
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        _host(
+          size: phone,
+          viewPadding: const EdgeInsets.only(top: 59, bottom: 34),
+          child: DuoBarScaffold(
+            body: const Text('body'),
+            background: const ColoredBox(
+              key: Key('background'),
+              color: Color(0xFF123456),
+            ),
+            horizontalChrome: (context, body) =>
+                const Text('horizontal chrome'),
+          ),
+        ),
+      );
+
+      expect(find.text('horizontal chrome'), findsOneWidget);
+      expect(tester.getSize(find.byKey(const Key('background'))).width, 430);
     });
   });
 }

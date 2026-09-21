@@ -27,6 +27,7 @@ class DuoBarScaffold extends StatelessWidget {
     this.tint,
     this.style,
     this.titleBackdrop = true,
+    this.background,
   });
 
   final Widget body;
@@ -53,6 +54,13 @@ class DuoBarScaffold extends StatelessWidget {
   /// own background there.
   final bool titleBackdrop;
 
+  /// Drawn behind everything, across the whole window including the strip.
+  ///
+  /// The system asks for interactive content inside the safe area and lets a
+  /// hero or background image run past it — what `UIBackgroundExtensionView`
+  /// does for a UIKit view. [body] stays inset; this does not.
+  final Widget? background;
+
   Widget _titleBand(DuoBarStyle style) {
     final label = Align(
       alignment: AlignmentDirectional.centerStart,
@@ -76,7 +84,15 @@ class DuoBarScaffold extends StatelessWidget {
         final viewPadding = MediaQuery.viewPaddingOf(context);
         final side = DuoLayout.barSide(viewPadding, state: state);
         if (side == null) {
-          return horizontalChrome?.call(context, body) ?? body;
+          final chrome = horizontalChrome?.call(context, body) ?? body;
+          return background == null
+              ? chrome
+              : Stack(
+                  children: [
+                    Positioned.fill(child: background!),
+                    Positioned.fill(child: chrome),
+                  ],
+                );
         }
 
         final strip = barStyle.stripWidth ?? DuoLayout.stripWidth(viewPadding);
@@ -103,6 +119,7 @@ class DuoBarScaffold extends StatelessWidget {
 
         return Stack(
           children: [
+            if (background != null) Positioned.fill(child: background!),
             Positioned.fill(child: content),
             Positioned(
               top: 0,

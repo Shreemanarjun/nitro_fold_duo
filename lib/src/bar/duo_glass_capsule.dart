@@ -99,7 +99,7 @@ class _DuoGlassCapsuleState extends State<DuoGlassCapsule> {
   void _pushContents(NitroFoldDuo duo, int id) {
     final next = (
       symbols: [for (final item in widget.items) item.symbol],
-      titles: [for (final item in widget.items) item.title ?? ''],
+      titles: [for (final item in widget.items) item.title],
       selected: widget.selectedIndex ?? -1,
       tint: widget.tint?.toARGB32() ?? 0,
       size: widget.symbolPointSize,
@@ -138,7 +138,7 @@ class _DuoGlassCapsuleState extends State<DuoGlassCapsule> {
     for (final (index, item) in widget.items.indexed) {
       if (item.menu.isEmpty) continue;
       next[index] = [
-        for (final entry in item.menu) '${entry.menuTitle}\u0000${entry.symbol}',
+        for (final entry in item.menu) '${entry.title}\u0000${entry.symbol}',
       ];
     }
 
@@ -148,7 +148,7 @@ class _DuoGlassCapsuleState extends State<DuoGlassCapsule> {
       duo.setGlassCapsuleMenu(
         id,
         index,
-        [for (final entry in menu) entry.menuTitle],
+        [for (final entry in menu) entry.title],
         [for (final entry in menu) entry.symbol],
       );
     }

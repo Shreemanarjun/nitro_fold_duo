@@ -89,14 +89,16 @@ void main() {
       // leading edge that the ordinary safe area says nothing about.
       debugSetDuoState(
         duo(
-          cornerInsets: const DuoInsets(left: 16, top: 0, right: 84, bottom: 34),
+          cornerInsets: const DuoInsets(
+            left: 16,
+            top: 0,
+            right: 84,
+            bottom: 34,
+          ),
         ),
       );
 
-      expect(
-        duoCornerInsets.value,
-        const EdgeInsets.fromLTRB(16, 0, 84, 34),
-      );
+      expect(duoCornerInsets.value, const EdgeInsets.fromLTRB(16, 0, 84, 34));
     });
   });
 

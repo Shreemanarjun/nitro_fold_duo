@@ -75,6 +75,25 @@ void main() {
       expect(tester.getSize(find.byKey(_primary)).width, 200);
     });
 
+    testWidgets('with no fallback axis it follows the box', (tester) async {
+      // What the system's split arrangement does: side by side when the box
+      // is wider than it is tall, stacked when it is taller than it is wide.
+      const auto = DuoSplit(
+        primary: ColoredBox(key: _primary, color: Color(0xFF000000)),
+        secondary: ColoredBox(key: _secondary, color: Color(0xFFFFFFFF)),
+      );
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      debugSetDuoState(duo(hinge: DuoHingeStatus.closed));
+
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      await tester.pumpWidget(host(child: auto, size: const Size(400, 800)));
+      expect(tester.getSize(find.byKey(_primary)).height, 400);
+
+      await tester.binding.setSurfaceSize(const Size(800, 400));
+      await tester.pumpWidget(host(child: auto, size: const Size(800, 400)));
+      expect(tester.getSize(find.byKey(_primary)).width, 400);
+    });
+
     testWidgets('re-splits when the device folds', (tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 800));
       addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -108,7 +127,10 @@ void main() {
           size: const Size(400, 800),
           child: Column(
             children: [
-              const SizedBox(height: 200, child: ColoredBox(color: Color(0xFF000000))),
+              const SizedBox(
+                height: 200,
+                child: ColoredBox(color: Color(0xFF000000)),
+              ),
               Expanded(child: _split()),
             ],
           ),

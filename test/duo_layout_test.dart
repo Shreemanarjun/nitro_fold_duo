@@ -146,10 +146,7 @@ void main() {
       final state = _state([
         _region(DuoRegionKind.occlusion, const Rect.fromLTWH(316, 0, 84, 170)),
       ]);
-      expect(
-        duoOcclusionInsets(state, _box),
-        const EdgeInsets.only(right: 84),
-      );
+      expect(duoOcclusionInsets(state, _box), const EdgeInsets.only(right: 84));
     });
 
     test('regions on opposite edges both apply', () {
