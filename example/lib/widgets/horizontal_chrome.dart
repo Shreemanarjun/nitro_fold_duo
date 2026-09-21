@@ -36,14 +36,25 @@ class HorizontalChrome extends StatelessWidget {
                 const SizedBox(width: 16),
               Text(
                 title,
-                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const Spacer(),
               ...actions,
             ],
           ),
         ),
-        Expanded(child: body),
+        // The tab bar below takes the home-indicator inset, so the body must
+        // not be offered it a second time.
+        Expanded(
+          child: MediaQuery.removePadding(
+            context: context,
+            removeBottom: selectedTab != null,
+            child: body,
+          ),
+        ),
         if (selectedTab != null)
           NavigationBar(
             selectedIndex: selectedTab!,

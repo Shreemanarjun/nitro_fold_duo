@@ -22,7 +22,10 @@ class DuoStatusLine extends StatelessWidget {
           key: const Key('statusLine'),
           width: double.infinity,
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          // The strip replaces the bars but not the home indicator, and
+          // nothing above this pads for it. The background runs under it —
+          // the system allows that — while the text stays clear.
+          padding: EdgeInsets.fromLTRB(12, 6, 12, 6 + viewPadding.bottom),
           child: Text(
             'hinge: ${state.hingeStatus.name} · '
             'screen: ${size.width.toStringAsFixed(0)}'
@@ -32,10 +35,10 @@ class DuoStatusLine extends StatelessWidget {
             '${viewPadding.right.toStringAsFixed(0)}/'
             '${viewPadding.bottom.toStringAsFixed(0)} · '
             '${division == null ? 'no division' : 'division '
-                  '${division.rect.left.toStringAsFixed(0)},'
-                  '${division.rect.top.toStringAsFixed(0)} '
-                  '${division.rect.width.toStringAsFixed(0)}×'
-                  '${division.rect.height.toStringAsFixed(0)}'}',
+                      '${division.rect.left.toStringAsFixed(0)},'
+                      '${division.rect.top.toStringAsFixed(0)} '
+                      '${division.rect.width.toStringAsFixed(0)}×'
+                      '${division.rect.height.toStringAsFixed(0)}'}',
             style: const TextStyle(fontSize: 11),
           ),
         );

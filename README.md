@@ -285,6 +285,14 @@ every other iPhone — the strip does not exist and `horizontalChrome` draws you
 ordinary app bar and tab bar around `body` instead. Omit it and `body` is used
 bare.
 
+The strip is composed in Flutter. iOS only moves bars it manages itself —
+`navigationItem` groups under a `UINavigationController` — which a Flutter app
+does not have, so the layout, the ordering and the overflow rule are
+reimplemented here to match what the system does. The capsules, their buttons
+and the overflow menu are real UIKit; the system's own bar features are not
+reachable through them, so there is no `visibilityPriority`, badge,
+`axisBehavior` or `UIVerticalBarBehavior.disabled`.
+
 ### DuoBarItem
 
 One icon button, named by its SF Symbol.

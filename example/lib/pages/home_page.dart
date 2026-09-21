@@ -13,7 +13,11 @@ enum DemoTab {
   reader(symbol: 'text.justify', title: 'Read', icon: Icons.article_outlined),
   state(symbol: 'info.circle', title: 'State', icon: Icons.info_outline);
 
-  const DemoTab({required this.symbol, required this.title, required this.icon});
+  const DemoTab({
+    required this.symbol,
+    required this.title,
+    required this.icon,
+  });
 
   final String symbol;
   final String title;
@@ -34,9 +38,9 @@ class _HomePageState extends State<HomePage> {
 
   void _record(String action) => setState(() => _action = action);
 
-  void _openDetail() => Navigator.of(
-    context,
-  ).push(MaterialPageRoute<void>(builder: (_) => const DetailPage()));
+  void _openDetail() =>
+      Navigator.of(context)
+          .push(MaterialPageRoute<void>(builder: (_) => const DetailPage()));
 
   /// Deliberately more actions than the strip can hold, so the tail lands in
   /// the system overflow menu.
@@ -104,7 +108,10 @@ class _HomePageState extends State<HomePage> {
     // The status line sits under whichever tab is up, so the device's state is
     // always on screen.
     final content = Column(
-      children: [Expanded(child: body), const DuoStatusLine()],
+      children: [
+        Expanded(child: body),
+        const DuoStatusLine(),
+      ],
     );
 
     return Scaffold(
