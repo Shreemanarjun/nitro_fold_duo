@@ -13,10 +13,6 @@ final class DuoGlassSurfaceFactory: NSObject, FlutterPlatformViewFactory {
     ) -> FlutterPlatformView {
         DuoGlassSurfaceView(frame: frame, viewId: viewId)
     }
-
-    func createArgsCodec() -> FlutterMessageCodec & NSObjectProtocol {
-        FlutterStandardMessageCodec.sharedInstance()
-    }
 }
 
 @MainActor

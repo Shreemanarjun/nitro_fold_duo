@@ -50,10 +50,6 @@ final class DuoGlassCapsuleFactory: NSObject, FlutterPlatformViewFactory {
     ) -> FlutterPlatformView {
         DuoGlassCapsuleView(frame: frame, viewId: viewId)
     }
-
-    func createArgsCodec() -> FlutterMessageCodec & NSObjectProtocol {
-        FlutterStandardMessageCodec.sharedInstance()
-    }
 }
 
 private final class CapsuleContainer: UIView {
